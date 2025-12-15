@@ -151,7 +151,7 @@ export default function AttendanceScreen() {
                 ))}
             </ScrollView>
 
-            {/* Total Count Section .............................................................................................................................*/}
+            {/* Total Count Section */}
             <View style={styles.countContainer}>
                 <View style={styles.count}>
                     <Text style={styles.countValue}>{onTimeCount}</Text>
