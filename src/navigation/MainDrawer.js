@@ -19,7 +19,11 @@ const Drawer = createDrawerNavigator();
 // Custom Drawer Component
 function CustomDrawerContent(props) {
 
-  const { logout } = useAuth();
+  // Retrive userData from AuthContext
+  const { logout, userData } = useAuth();
+  const userName = userData?.fullName || 'Employee';
+  const userRole = userData?.role || 'User';
+
   const handleLogout = () => {
     logout();
   };
@@ -32,8 +36,8 @@ function CustomDrawerContent(props) {
           source={require('../../assets/images/logo-DlE65z4X.jpg')}
           style={styles.logo}
         />
-        <Text style={styles.userName}>Aakash Kathole</Text>
-        <Text style={styles.userRole}>Developer</Text>
+        <Text style={styles.userName}>{userName}</Text>
+        <Text style={styles.userRole}>{userRole}</Text>
       </View>
 
       <View style={styles.drawerList}>
