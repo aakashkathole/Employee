@@ -7,7 +7,7 @@ import { useAuth } from '../context/AuthContext';
 // screens
 import DashboardScreen from '../screens/DashboardScreen';
 import ProfileScreen from '../screens/ProfileScreen';
-import AttendanceScreen from '../screens/AttendanceScreen';
+import AttendanceStackNavigator from "./AttendanceStackNavigator";
 import SalaryScreen from '../screens/SalaryScreen';
 import LeaveScreen from '../screens/LeaveScreeen';
 import MemoScreen from '../screens/MemoScreen';
@@ -106,7 +106,7 @@ export default function MainDrawer() {
       />
       <Drawer.Screen
         name="Attendance"
-        component={AttendanceScreen}
+        component={AttendanceStackNavigator}
         options={{
           drawerIcon: ({ color, size }) => (
             <MaterialCommunityIcons name="calendar-check-outline" color={color} size={size} />
@@ -114,7 +114,7 @@ export default function MainDrawer() {
           drawerLabelStyle: {
             fontFamily: 'Poppins-Medium',
             fontSize: 16,
-          }
+          },
         }}
       />
       <Drawer.Screen

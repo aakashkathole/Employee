@@ -3,14 +3,11 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, FlatList, ScrollView, TouchableOpacity, ActivityIndicator } from 'react-native';
 import Toast from 'react-native-toast-message';
-// MaterialCommunityIcons is imported but not used, so I'll keep it commented out unless needed.
-// import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons'; 
+import { useNavigation } from '@react-navigation/native';
 
 // Import services and components
 import { fetchAttendanceRecords, logAttendanceAction } from '../Services/attendanceServices';
 import AttendanceItem from '../components/AttendanceItem';
-// DashboardScreen is imported but not used.
-// import DashboardScreen from './DashboardScreen';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 
@@ -125,6 +122,8 @@ export default function AttendanceScreen() {
         }
     };
 
+    const navigation = useNavigation();
+
     return (
         <SafeAreaView style={styles.container}>
             <Text style={styles.header}>Attendance</Text>
@@ -191,8 +190,48 @@ export default function AttendanceScreen() {
             </View>
         )}
 
-        
-        
+        <View style={[styles.spacer, { flex: 2 }]} /> 
+        {/*   Action Section */}
+        <View style={styles.actionsContainer}>
+            <View style={{ flexDirection:'row', justifyContent:'space-between'}}>
+                <View>
+                 <TouchableOpacity
+                    style={styles}
+                    onPress={() => navigation.navigate('CheckInScreen')}
+                    >
+                    <Text>Check In</Text>
+                    </TouchableOpacity>
+                </View>
+               <View>
+                    <TouchableOpacity
+                    style={styles}
+                    onPress={() => navigation.navigate('BreakStartScreen')}
+                    >
+                        <Text>Break Start</Text>
+                    </TouchableOpacity>
+                </View>
+            </View>
+            <View style={{ flexDirection:'row', justifyContent:'space-between'}}>
+                <View>
+                    <TouchableOpacity
+                    style={styles}
+                    onPress={() => navigation.navigate('BreakEndScreen')}
+                    >
+                        <Text>Break End</Text>
+                    </TouchableOpacity>
+                </View>
+                <View>
+                    <TouchableOpacity
+                    style={styles}
+                    onPress={() => navigation.navigate('CheckOutScreen')}
+                    >
+                        <Text>Check Out</Text>
+                    </TouchableOpacity>
+                </View>
+            </View>
+        </View>
+
+         
         <Toast />
     </SafeAreaView>
     );
@@ -280,7 +319,7 @@ const styles = StyleSheet.create({
         justifyContent: 'space-between',
         alignItems: 'center',
         marginHorizontal: 10,
-        borderRadius: 16,
+        borderRadius: 25,
         marginBottom: 15,
     },
 
@@ -304,8 +343,9 @@ const styles = StyleSheet.create({
         maxHeight: 325,
         height: 150,
         paddingHorizontal: 10, 
-        borderRadius: 16, 
+        borderRadius: 25, 
         marginHorizontal: 10, // Added margin for visual separation
+        marginBottom: 15,
     },
     listContentContainer: {
         paddingVertical: 10,
@@ -318,6 +358,15 @@ const styles = StyleSheet.create({
         color: '#6c757d',
         fontFamily: 'Poppins-Regular', 
         fontSize: 16,
+    },
+
+    // action btn
+    actionsContainer: {
+        backgroundColor: '#a3a3a329',
+        borderRadius: 25,
+        marginHorizontal: 10,
+        padding: 10,
+        marginBottom: 20
     },
 });
 
