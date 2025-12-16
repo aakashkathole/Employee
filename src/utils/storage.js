@@ -49,28 +49,3 @@ export const clearLoginData = async () => {
         console.error("Error clearing data:", error);
     }
 };
-
-// Logout user and redirect to login screen
-
-export const logoutUser = async (navigation) => {
-    try {
-        await clearLoginData();
-
-        Toast.show({
-            type: 'success',
-            text1: 'Logged out successfully!',
-            text2: 'Your session is now closed.',
-            position: 'bottom',
-            visibilityTime: 2000,
-        });
-
-        navigation.replace("Login");
-
-    } catch (error) {
-        Toast.show({
-            type: "error",
-            text1: "Logout failed",
-            text2: error.message,
-        });
-    }
-};

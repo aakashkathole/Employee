@@ -4,6 +4,14 @@ import { Alert, BackHandler } from 'react-native';
 
 let navigationRef = null;
 
+// globally variable callback
+let tokenExpiredCallback = null;
+
+// function for AuthProvider to set callback
+export const setTokenExpiredCallback = (callback) => {
+  tokenExpiredCallback = callback;
+};
+
 // Allow setting navigation from App.js
 export const setNavigation = (nav) => {
   navigationRef = nav;
@@ -34,30 +42,21 @@ apiClient.interceptors.response.use(
 
     // 401 means token expired or invalid
     if (status === 401) {
-      await clearLoginData();
-
-      Alert.alert(
-        "Session Expired",
-        "Your session has expired. Please login again.",
-        [
-          {
-            text: "Login",
-            onPress: () => {
-              if (navigationRef) {
-                navigationRef.replace("Login");
-              }
-            },
-          },
-          {
-            text: "Exit",
-            style: "destructive",
-            onPress: () => BackHandler.exitApp()
-          }
-        ],
-        { cancelable: false }
-      );
+      // 💡 DELEGATE: Call the handler provided by the AuthContext
+      if (tokenExpiredCallback) {
+        // Pass 'true' to signal the context to show the alert
+        tokenExpiredCallback(true); 
+      } else {
+        // Fallback or just log an error if context isn't ready
+        console.error("401 Unauthorized received, but AuthContext handler is missing.");
+        // Optional: If you must have a fallback, keep a minimal alert/exit here.
+      }
+      
+      // IMPORTANT: DO NOT execute clearLoginData() or navigation logic here.
+      // The tokenExpiredCallback in the AuthContext handles all of that.
     }
 
+    // Always reject the promise so the calling code can catch the error locally if needed
     return Promise.reject(error);
   }
 );

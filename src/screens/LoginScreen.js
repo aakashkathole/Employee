@@ -5,81 +5,77 @@ import Toast from 'react-native-toast-message';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import Loader from '../components/Loader';
 import { loginUser } from '../Services/authService';
-import { saveLoginData } from "../utils/storage";
+import { useAuth } from '../context/AuthContext';
 
 export default function LoginScreen({ navigation }) {
+  const { login } = useAuth();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
 
   const handleLogin = async () => {
-    if (!email || !password) { 
+    if (!email || !password) {
       Toast.show({
-      type:'error',
-      text1:'Please enter both email and password.',
-      position:'top',
-      visibilityTime: 1000 // 1 sec
+        type:'error',
+        text1:'Please enter both email and password.',
+        position:'top',
+        visibilityTime: 1000
       });
       return;
-      }
-       
-      setLoading(true);
+    }
+    
+    setLoading(true);
 
-      try {
-        const data = await loginUser(email, password);
-        console.log('Login Response:', data);
+        try {
+            const data = await loginUser(email, password);
+            console.log('Login Response:', data);
 
-        if (data?.token) {
-
-          const apiUserData = data.data;
-          // 💡 CREATE THE CLEAN, MAPPED USER OBJECT FOR STORAGE
-          const userToSave = {
-            // Map 'id' (from API) to 'empId' (required by fetchAttendanceRecords)
-            empId: apiUserData.id, 
-        
-            // Map 'empEmail' (from API) to 'email' (required by all checks)
-            email: apiUserData.empEmail,
-
-            id: apiUserData.id,
-            empEmail: apiUserData.empEmail,
-        
-            // Copy directly
-            role: apiUserData.role,
-            branchCode: apiUserData.branchCode, 
-            fullName: apiUserData.fullName,
-          };
-            // save token + userData
-            await saveLoginData(data.token, userToSave );
+            if (data?.token) {
+                const apiUserData = data.data;
+                
+                const userToSave = {
+                    empId: apiUserData.id, 
+                    email: apiUserData.empEmail,
+                    id: apiUserData.id,
+                    empEmail: apiUserData.empEmail,
+                    role: apiUserData.role,
+                    branchCode: apiUserData.branchCode, 
+                    fullName: apiUserData.fullName,
+                };
+                
+                // This function updates both AsyncStorage AND the AuthContext state.
+                await login(data.token, userToSave); 
 
 
-            Toast.show({
-            type: 'customSuccessToast',
-            text1: 'Login successful!',
-            position:'top',
-            visibilityTime: 1500 // 1.5 sec
-            });
-            
-            navigation.replace('MainDrawer');
+                Toast.show({
+                    type: 'customSuccessToast',
+                    text1: 'Login successful!',
+                    position:'top',
+                    visibilityTime: 1500
+                });
+                
+                // The RootNavigator in App.js will handle the screen switch automatically.
+
             } else {
+                Toast.show({
+                    type: 'error',
+                    text1: data.message || 'Invalid email or password',
+                    position:'top',
+                    visibilityTime: 1000
+                });
+            }
+        } catch (error) {
+            console.log("LOGIN ERROR FULL:", error);
             Toast.show({
-            type: 'error',
-            text1: data.message || 'Invalid email or password',
-            position:'top',
-            visibilityTime: 1000 // 1 secs
-          });
+                type: 'error',
+                text1: error.message || 'Login failed. Try again.',
+                position:'top',
+                visibilityTime: 1000
+            });
+        } finally {
+            setLoading(false);
         }
-      } catch (error) {
-        console.log("LOGIN ERROR FULL:", error); //...........................
-        Toast.show({
-        type: 'error',
-        text1: error.message || 'Login failed. Try again.',
-        position:'top',
-        visibilityTime: 1000 // 1 sec
-        });
-      } finally {
-        setLoading(false);
-      }
     };
 
   return (

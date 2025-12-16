@@ -2,8 +2,7 @@ import React from 'react';
 import { View, Text, Image, StyleSheet } from 'react-native';
 import { createDrawerNavigator, DrawerContentScrollView, DrawerItemList, DrawerItem } from '@react-navigation/drawer';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
-
-import { logoutUser } from "../utils/storage";
+import { useAuth } from '../context/AuthContext';
 
 // screens
 import DashboardScreen from '../screens/DashboardScreen';
@@ -19,6 +18,12 @@ const Drawer = createDrawerNavigator();
 
 // Custom Drawer Component
 function CustomDrawerContent(props) {
+
+  const { logout } = useAuth();
+  const handleLogout = () => {
+    logout();
+  };
+  
   return (
     <DrawerContentScrollView {...props} contentContainerStyle={{ flex: 1 }}>
  
@@ -46,7 +51,7 @@ function CustomDrawerContent(props) {
             size={22}
           />
           )}
-          onPress={() => logoutUser(props.navigation)}
+          onPress={handleLogout}
           style={styles.logoutButton}
         />
       </View>
