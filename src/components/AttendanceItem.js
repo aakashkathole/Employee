@@ -60,7 +60,7 @@ export default function AttendanceItem({ record }) {
                 <Row label="Check Out" value={formatTime(record.logoutTime)} />
                 <Row label="Break In" value={formatTime(record.breakIn || '--')} />
                 <Row label="Break Out" value={formatTime(record.breakOut || '--')} />
-                <Row label="Over Time" value={record.overTime || '00:00'} isBold={true} />
+                <Row label="Over Time" value={record.overTime ? `${record.overTime} mins` : '0 mins'} isBold={true} />
             </View>
         </View>
     );
