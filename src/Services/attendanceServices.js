@@ -9,19 +9,18 @@ const ATTENDANCE_HISTORY_ENDPOINT = '/getAttendanceByEmpId';
 const BREAK_IN_ENDPOINT = '/employeeBreakIn';
 const BREAK_OUT_ENDPOINT = '/employeeBreakOut';
 const MARK_ATTENDANCE_ENDPOINT = '/markAttendanceForEmployee';
+const EMPLOYEE_LOGOUT_ENDPOINT = '/employeeLogout';
 
 
 // --- HELPER: BUILD IMAGE PAYLOAD (FormData) ---
 
-/**
- * Builds the FormData payload required for attendance actions with image upload.
- */
 const buildAttendanceFormData = async (actionType, localImagePath) => {
     // NOTE: If getUserData is in utils/storage, change the import above.
     const userData = await getUserData(); 
+    console.log('userData:', userData);
 
-    if (!userData || !userData.email || !userData.branchCode) {
-        throw new Error("Missing user data (email or branchCode) for attendance action.");
+    if (!userData || !userData.email || userData.email === 'null' || !userData.branchCode || userData.branchCode === 'null') {
+        throw new Error("Missing or invalid user data (email or branchCode)");
     }
 
     const formData = new FormData();
@@ -30,18 +29,18 @@ const buildAttendanceFormData = async (actionType, localImagePath) => {
     formData.append('email', userData.email);
     formData.append('branchCode', userData.branchCode);
 
-    // Append the action type if using the general MARK_ATTENDANCE_ENDPOINT
-    if (actionType === 'Check In' || actionType === 'Check Out') {
-        formData.append('action', actionType.replace(' ', '')); 
-    }
+    // Append the action type
+    formData.append('action', actionType.replace(' ', ''));
 
     // Append the image file data
     if (localImagePath) {
         formData.append('image', {
             uri: localImagePath,
-            name: `${userData.email}_${actionType}.jpeg`,
+            name: `${userData.email}_${actionType.replace(' ', '')}.jpeg`,
             type: 'image/jpeg',
         });
+    } else {
+        throw new Error('Image is required');
     }
 
     return formData;
@@ -92,6 +91,8 @@ export const logAttendanceAction = async (actionType, localImagePath) => {
         actionEndpoint = BREAK_IN_ENDPOINT;
     } else if (actionType === 'Break End') {
         actionEndpoint = BREAK_OUT_ENDPOINT;
+    } else if (actionType === 'Check Out') {
+        actionEndpoint = EMPLOYEE_LOGOUT_ENDPOINT;
     } else {
         actionEndpoint = MARK_ATTENDANCE_ENDPOINT;
     }

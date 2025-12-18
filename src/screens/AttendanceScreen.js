@@ -1,24 +1,15 @@
 // screens/AttendanceScreen.js
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { View, Text, StyleSheet, FlatList, ScrollView, TouchableOpacity, ActivityIndicator } from 'react-native';
 import Toast from 'react-native-toast-message';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useFocusEffect } from '@react-navigation/native';
 
 // Import services and components
-import { fetchAttendanceRecords, logAttendanceAction } from '../Services/attendanceServices';
+import { fetchAttendanceRecords } from '../Services/attendanceServices';
 import AttendanceItem from '../components/AttendanceItem';
+import CameraModal from '../components/CameraModal';
 import { SafeAreaView } from 'react-native-safe-area-context';
-
-
-// Placeholder for a camera utility (you need to implement this!)
-const getPlaceholderImageUri = async () => {
-    // ⚠️ IMPORTANT: Implement your camera logic here (e.g., using 'expo-camera').
-    // This dummy returns a promise to simulate the time taken.
-    await new Promise(resolve => setTimeout(resolve, 500));
-    // In a real app, this should return the actual path or URI after capture.
-    return "file:///dummy/path/replace_with_actual_image_uri.jpg"; 
-};
 
 
 // Define the available date filters
@@ -40,8 +31,10 @@ export default function AttendanceScreen() {
     const [selectedTimeFrame, setSelectedTimeFrame] = useState('today'); 
     const [attendanceData, setAttendanceData] = useState([]); 
     const [isLoading, setIsLoading] = useState(false); 
-    // isActionLoading will prevent multiple quick actions being fired simultaneously
-    const [isActionLoading, setIsActionLoading] = useState(false);
+
+    // Modal states
+    const [modalVisible, setModalVisible] = useState(false);
+    const [currentAction, setCurrentAction] = useState('');
 
     // --- Data Loading Logic ---
     const loadAttendance = async (timeFrame) => {
@@ -77,56 +70,24 @@ export default function AttendanceScreen() {
         }
     };
 
-    // Load data on component mount and filter change
-    useEffect(() => {
-        loadAttendance(selectedTimeFrame);
-    }, [selectedTimeFrame]); // Depend on selectedTimeFrame
+    // Load data on component mount, filter change, and focus
+    useFocusEffect(
+        useCallback(() => {
+            loadAttendance(selectedTimeFrame);
+        }, [selectedTimeFrame])
+    );
 
-
-    // --- Quick Action Logic (Check In, Break, etc.) ---
-    const handleQuickAction = async (actionType) => {
-        // Prevent action if already loading
-        if (isActionLoading) return;
-        
-        setIsActionLoading(true);
-        try {
-            // 1. Capture image (simulated)
-            const localImagePath = await getPlaceholderImageUri(); 
-
-            // 2. Log the action via API
-            // The actionType is passed directly (e.g., 'Check In')
-            await logAttendanceAction(actionType, localImagePath);
-
-            // 3. Success feedback
-            Toast.show({ 
-                type: 'success', 
-                text1: `${actionType} successful!`, 
-                text2: `Action logged at ${new Date().toLocaleTimeString()}`,
-                position: 'top' 
-            });
-
-            // 4. Refresh data after successful action
-            // This ensures the current day's record updates immediately.
-            loadAttendance(selectedTimeFrame); 
-
-        } catch (error) {
-            console.error(`Action failed: ${actionType}`, error);
-            Toast.show({ 
-                type: 'error', 
-                text1: `${actionType} failed!`, 
-                text2: error.message || "Server or network error. Please try again.", 
-                position: 'top'
-            });
-        } finally {
-            setIsActionLoading(false);
-        }
-    };
 
     const navigation = useNavigation();
 
     return (
         <SafeAreaView style={styles.container}>
-            <Text style={styles.header}>Attendance</Text>
+            <View style={styles.headerContainer}>
+                <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
+                    <Text style={styles.backButtonText}>← Back</Text>
+                </TouchableOpacity>
+                <Text style={styles.header}>Attendance</Text>
+            </View>
             
             {/* Quick Actions */}
             {/* Time Frame Filters */}
@@ -190,47 +151,56 @@ export default function AttendanceScreen() {
             </View>
         )}
 
-        <View style={[styles.spacer, { flex: 2 }]} /> 
         {/*   Action Section */}
         <View style={styles.actionsContainer}>
-            <View style={{ flexDirection:'row', justifyContent:'space-between'}}>
+            <View style={{ flexDirection:'row', justifyContent: 'space-evenly'}}>
                 <View>
                  <TouchableOpacity
-                    style={styles}
-                    onPress={() => navigation.navigate('CheckInScreen')}
+                    style={styles.actionBtn}
+                    onPress={() => { setCurrentAction('Check In'); setModalVisible(true); }}
                     >
-                    <Text>Check In</Text>
+                    <Text style={styles.actionButtonText}>Check In</Text>
                     </TouchableOpacity>
                 </View>
                <View>
                     <TouchableOpacity
-                    style={styles}
-                    onPress={() => navigation.navigate('BreakStartScreen')}
+                    style={styles.actionBtn}
+                    onPress={() => { setCurrentAction('Break Start'); setModalVisible(true); }}
                     >
-                        <Text>Break Start</Text>
+                        <Text style={styles.actionButtonText}>Break Start</Text>
                     </TouchableOpacity>
                 </View>
             </View>
-            <View style={{ flexDirection:'row', justifyContent:'space-between'}}>
+            <View style={{ flexDirection:'row', justifyContent: 'space-evenly' }}>
                 <View>
                     <TouchableOpacity
-                    style={styles}
-                    onPress={() => navigation.navigate('BreakEndScreen')}
+                    style={styles.actionBtn}
+                    onPress={() => { setCurrentAction('Break End'); setModalVisible(true); }}
                     >
-                        <Text>Break End</Text>
+                        <Text style={styles.actionButtonText}>Break End</Text>
                     </TouchableOpacity>
                 </View>
                 <View>
                     <TouchableOpacity
-                    style={styles}
-                    onPress={() => navigation.navigate('CheckOutScreen')}
+                    style={styles.actionBtn}
+                    onPress={() => { setCurrentAction('Check Out'); setModalVisible(true); }}
                     >
-                        <Text>Check Out</Text>
+                        <Text style={styles.actionButtonText}>Check Out</Text>
                     </TouchableOpacity>
                 </View>
             </View>
         </View>
 
+        <CameraModal
+            visible={modalVisible}
+            actionType={currentAction}
+            onSuccess={() => {
+                setSelectedTimeFrame('today');
+                loadAttendance('today');
+                setModalVisible(false);
+            }}
+            onClose={() => setModalVisible(false)}
+        />
          
         <Toast />
     </SafeAreaView>
@@ -239,6 +209,23 @@ export default function AttendanceScreen() {
 
 const styles = StyleSheet.create({
     container: { flex: 1, backgroundColor: '#fff' },
+    headerContainer: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        marginHorizontal: 15,
+        marginVertical: 10,
+        marginBottom: 10,
+    },
+    backButton: {
+        marginRight: 10,
+        padding: 5,
+    },
+    backButtonText: {
+        fontSize: 12,
+        color: '#007bff',
+        fontFamily: 'Poppins-SemiBold',
+        fontWeight: 'bold',
+    },
     header: { 
         fontSize: 20,
         fontFamily: 'Poppins-SemiBold', 
@@ -246,35 +233,6 @@ const styles = StyleSheet.create({
         marginVertical: 10,
         marginBottom: 10, 
         color: '#333', 
-    },
-    
-    // Quick Actions
-    quickActionsContainer: { 
-        flexDirection: 'row', 
-        justifyContent: 'space-between', 
-        paddingHorizontal: 15,
-        marginBottom: 20,
-    },
-    actionButton: { 
-        backgroundColor: '#28a745', // Green
-        paddingVertical: 10, 
-        paddingHorizontal: 12,
-        borderRadius: 8,
-        flexDirection: 'row',
-        alignItems: 'center',
-        // flex: 1 added to ensure equal spacing for all buttons
-        flex: 1,
-        marginHorizontal: 4, // Add a little space between buttons
-        justifyContent: 'center',
-    },
-    checkoutButton: {
-        backgroundColor: '#dc3545', // Red for Check Out
-    },
-    actionButtonText: { 
-        color: 'white', 
-        fontWeight: 'bold', 
-        fontSize: 12, // Reduced font size for better fit
-        textAlign: 'center',
     },
 
     // Filters
@@ -340,7 +298,7 @@ const styles = StyleSheet.create({
     // List
     listContainer: {
         backgroundColor: '#a3a3a329',
-        maxHeight: 325,
+        maxHeight: 425,
         height: 150,
         paddingHorizontal: 10, 
         borderRadius: 25, 
@@ -365,32 +323,25 @@ const styles = StyleSheet.create({
         backgroundColor: '#a3a3a329',
         borderRadius: 25,
         marginHorizontal: 10,
+        justifyContent: 'space-evenly',
+        marginBottom: 20,
+        height: 120,
+    },
+
+    actionBtn: { 
+        backgroundColor: '#ffffff',
         padding: 10,
-        marginBottom: 20
+        borderRadius: 25,
+        width: 150,
+        height: 45,
+        justifyContent: 'center',
+    
+    },
+
+    actionButtonText: { 
+        color: '#000', 
+        fontSize: 14, // Reduced font size for better fit
+        fontFamily: 'Poppins-Regular',
+        textAlign: 'center',
     },
 });
-
-
-//{/* Quick Actions */}
-  //          <View style={styles.quickActionsContainer}>
-    //            {['Check In', 'Break Start', 'Break End', 'Check Out'].map(action => (
-      //              <TouchableOpacity 
-        //                key={action} 
-          //              style={[
-            //                styles.actionButton, 
-              //              action === 'Check Out' && styles.checkoutButton,
-                //            // Dim the button when loading
-                  //          isActionLoading && { opacity: 0.6 }
-                    //    ]} 
-                      //  onPress={() => handleQuickAction(action)}
- //                       disabled={isActionLoading}
-   //                 >
-     //                   {/* Only show loader in the middle of the button for better centering */}
-       //                 {isActionLoading ? (
-         //                   <ActivityIndicator color="white" />
-           //             ) : (
-             //               <Text style={styles.actionButtonText}>{action}</Text>
-               //         )}
-                 //   </TouchableOpacity>
-     //           ))}
-       //     </View>
