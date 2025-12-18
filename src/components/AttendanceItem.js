@@ -33,8 +33,8 @@ export default function AttendanceItem({ record }) {
             <View style={styles.detailsGrid}>
                 <Row label="Check In" value={formatTime(record.loginTime)} isBold={true} />
                 <Row label="Check Out" value={formatTime(record.logoutTime)} />
-                <Row label="Break In" value={record.breakIn || '--'} />
-                <Row label="Break Out" value={record.breakOut || '--'} />
+                <Row label="Break In" value={formatTime(record.breakIn || '--')} />
+                <Row label="Break Out" value={formatTime(record.breakOut || '--')} />
                 <Row label="Over Time" value={record.overTime || '00:00'} isBold={true} />
             </View>
         </View>
