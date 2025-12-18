@@ -15,8 +15,33 @@ const getStatusStyle = (status) => {
 export default function AttendanceItem({ record }) {
     const statusStyle = getStatusStyle(record.status);
     
-    // Helper to format time strings (removes milliseconds if present)
-    const formatTime = (time) => time ? time.substring(0, 8) : '--';
+    // optimized formatTime function
+    const formatTime = (time) => {
+    // 1. Handle null, undefined, or empty values
+    if (!time || typeof time !== 'string') return '--:--';
+
+    try {
+        // 2. Remove milliseconds (split by '.' and take first part)
+        const mainTime = time.split('.')[0]; 
+        
+        // 3. Extract hours and minutes
+        let [hours, minutes] = mainTime.split(':');
+        hours = parseInt(hours, 10);
+
+        if (isNaN(hours)) return '--:--';
+
+        // 4. Determine AM/PM
+        const ampm = hours >= 12 ? 'PM' : 'AM';
+
+        // 5. Convert to 12-hour format
+        hours = hours % 12;
+        hours = hours ? hours : 12; // Handle 0 as 12
+
+        return `${hours}:${minutes} ${ampm}`;
+    } catch (e) {
+        return '--:--';
+    }
+};
 
     return (
         <View style={styles.card}>
