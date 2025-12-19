@@ -27,7 +27,7 @@ export default function LeaveTabNavigator() {
             justifyContent: 'center'
         },
         tabBarStyle: {
-            backgroundColor: '#929292ff', 
+            backgroundColor: '#a3a3a329', 
             borderRadius: 25, 
             margin: 10,
             elevation: 5, // Android shadow

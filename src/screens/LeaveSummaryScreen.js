@@ -50,13 +50,37 @@ export default function LeaveSummaryScreen() {
         }
       >
 
-        <View>
-          <Text>{leaveData?.totalPaidLeaves}</Text>
-          <Text>{leaveData?.totalUnpaidLeaves}</Text>
-          <Text>{leaveData?.totalAppliedLeaves}</Text>
-          <Text>{leaveData?.paidLeave}</Text>
-          <Text>{leaveData?.unpaidLeave}</Text>
-          <Text>{leaveData?.remaingPaidLeave}</Text>          
+        <View style={styles.viewContainer}>
+          <View style={styles.viewCard}>
+            <View style={styles.card}>
+              <Text>{leaveData?.totalPaidLeaves}</Text>
+              <Text>Total Paid Leaves</Text>
+            </View>
+            <View style={styles.card}>
+              <Text>{leaveData?.totalUnpaidLeaves}</Text>
+              <Text>Total Unpaid Leaves</Text>
+            </View>
+          </View>
+          <View style={styles.viewCard}>
+            <View style={styles.card}>
+              <Text>{leaveData?.totalAppliedLeaves}</Text>
+              <Text>Total Applied Leaves</Text>
+            </View>
+            <View style={styles.card}>
+              <Text>{leaveData?.paidLeave}</Text>
+              <Text>Paid Leaves</Text>
+            </View>
+          </View>
+          <View style={styles.viewCard}>
+            <View style={styles.card}>
+              <Text>{leaveData?.unpaidLeave}</Text>
+              <Text>Unpaid Leaves</Text>
+            </View>
+            <View style={styles.card}>
+              <Text>{leaveData?.remaingPaidLeave}</Text>
+              <Text>Remaining Paid Leaves</Text>
+            </View>          
+        </View>
         </View>
       </ScrollView>
     </SafeAreaView>
@@ -66,7 +90,7 @@ export default function LeaveSummaryScreen() {
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: '#F5F7FA',
+    backgroundColor: '#ffffff',
   },
   centered: {
     flex: 1,
@@ -75,5 +99,25 @@ const styles = StyleSheet.create({
   },
   scrollContent: {
     padding: 10,
+    backgroundColor: '#ffffff'
+  },
+  //
+  viewContainer: {
+    borderRadius: 25,
+    margin: 10,
+    padding: 10,
+    backgroundColor: '#F5F7FA',
+    justifyContent: 'space-evenly',
+    borderWidth: 1
+  },
+  viewCard: {
+    borderRadius: 25,
+    padding: 10,
+    backgroundColor: '#a3a3a329',
+    flexDirection: 'row',
+    borderWidth: 1
+  },
+  card: {
+    borderWidth: 1,
   },
 });
