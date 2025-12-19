@@ -9,7 +9,7 @@ import DashboardScreen from '../screens/DashboardScreen';
 import ProfileScreen from '../screens/ProfileScreen';
 import AttendanceStackNavigator from "./AttendanceStackNavigator";
 import SalaryScreen from '../screens/SalaryScreen';
-import LeaveScreen from '../screens/LeaveScreeen';
+import LeaveTabNavigator from "../navigation/LeaveTabNavigator";
 import MemoScreen from '../screens/MemoScreen';
 import HolidayScreen from '../screens/HolidayScreen';
 import QueryScreen from '../screens/QueryScreen';
@@ -132,7 +132,7 @@ export default function MainDrawer() {
       />
       <Drawer.Screen
         name="Leave"
-        component={LeaveScreen}
+        component={LeaveTabNavigator}
         options={{
           drawerIcon: ({ color, size }) => (
             <MaterialCommunityIcons name="briefcase-outline" color={color} size={size} />

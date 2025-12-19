@@ -1,10 +1,10 @@
 import { StyleSheet, Text, View } from 'react-native'
 import React from 'react'
 
-export default function LeaveScreeen() {
+export default function ApplyLeaveScreen() {
   return (
     <View>
-      <Text>LeaveScreeen</Text>
+      <Text>ApplyLeaveScreen</Text>
     </View>
   )
 }
