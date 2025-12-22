@@ -53,32 +53,32 @@ export default function LeaveSummaryScreen() {
         <View style={styles.viewContainer}>
           <View style={styles.viewCard}>
             <View style={styles.card}>
-              <Text>{leaveData?.totalPaidLeaves}</Text>
-              <Text>Total Paid Leaves</Text>
+              <Text style={styles.leaveText}>{leaveData?.totalPaidLeaves}</Text>
+              <Text style={styles.leaveText}>Total Paid Leaves</Text>
             </View>
             <View style={styles.card}>
-              <Text>{leaveData?.totalUnpaidLeaves}</Text>
-              <Text>Total Unpaid Leaves</Text>
-            </View>
-          </View>
-          <View style={styles.viewCard}>
-            <View style={styles.card}>
-              <Text>{leaveData?.totalAppliedLeaves}</Text>
-              <Text>Total Applied Leaves</Text>
-            </View>
-            <View style={styles.card}>
-              <Text>{leaveData?.paidLeave}</Text>
-              <Text>Paid Leaves</Text>
+              <Text style={styles.leaveText}>{leaveData?.totalUnpaidLeaves}</Text>
+              <Text style={styles.leaveText}>Total Unpaid Leaves</Text>
             </View>
           </View>
           <View style={styles.viewCard}>
             <View style={styles.card}>
-              <Text>{leaveData?.unpaidLeave}</Text>
-              <Text>Unpaid Leaves</Text>
+              <Text style={styles.leaveText}>{leaveData?.totalAppliedLeaves}</Text>
+              <Text style={styles.leaveText}>Total Applied Leaves</Text>
             </View>
             <View style={styles.card}>
-              <Text>{leaveData?.remaingPaidLeave}</Text>
-              <Text>Remaining Paid Leaves</Text>
+              <Text style={styles.leaveText}>{leaveData?.paidLeave}</Text>
+              <Text style={styles.leaveText}>Paid Leaves</Text>
+            </View>
+          </View>
+          <View style={styles.viewCard}>
+            <View style={styles.card}>
+              <Text style={styles.leaveText}>{leaveData?.unpaidLeave}</Text>
+              <Text style={styles.leaveText}>Unpaid Leaves</Text>
+            </View>
+            <View style={styles.card}>
+              <Text style={styles.leaveText}>{leaveData?.remaingPaidLeave}</Text>
+              <Text style={styles.leaveText}>Remaining Paid Leaves</Text>
             </View>          
         </View>
         </View>
@@ -104,20 +104,24 @@ const styles = StyleSheet.create({
   //
   viewContainer: {
     borderRadius: 25,
-    margin: 10,
-    padding: 10,
     backgroundColor: '#F5F7FA',
-    justifyContent: 'space-evenly',
-    borderWidth: 1
   },
   viewCard: {
     borderRadius: 25,
-    padding: 10,
-    backgroundColor: '#a3a3a329',
     flexDirection: 'row',
-    borderWidth: 1
+    justifyContent: 'space-around',
+    margin: 6
   },
   card: {
-    borderWidth: 1,
+    borderRadius: 25,
+    padding: 3,
+    borderWidth: 0.5,
+    alignItems: 'center',
+    backgroundColor: '#fff'
+  },
+  leaveText: {
+    fontFamily: 'Poppins-Regular',
+    color: '#000000',
+    paddingHorizontal: 10,
   },
 });
