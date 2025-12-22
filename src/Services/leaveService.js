@@ -5,6 +5,7 @@ import { getUserData } from '../utils/storage';
 
 // --- ENDPOINT CONFIGURATION ---
 const LEAVE_SUMMARY_ENDPOINT = '/getLeaveSummary';
+const GET_ALL_LEAVES_ENDPOINT = '/getAllLeavesByEmployeeId';
 
 export const fetchLeaveSummary = async () => {
     try {
@@ -30,6 +31,36 @@ export const fetchLeaveSummary = async () => {
 
     } catch (error) {
         console.error("Error fetching leave summary:", error.response?.data || error.message);
+        throw error.response?.data || error;
+    }
+};
+
+// fetch all leave applications using empID, role, and email
+export const fetchAllLeavesByEmployeeId = async () => {
+    try {
+        const userData = await getUserData();
+
+        // validate required data
+        if (!userData || !userData.empId || !userData.role || !userData.email) {
+            throw new Error("Missing user data required to fetch leave history.");
+        }
+
+        // query parameters
+        const params = {
+            empID: userData.id,
+            role: userData.role,
+            email: userData.email,
+        };
+
+        // pass params URL
+        const response = await apiClient.get(GET_ALL_LEAVES_ENDPOINT, { 
+            params 
+        });
+
+        return response.data;
+
+    } catch (error) {
+        console.error("Error fetching leave history:", error.response?.data || error.message);
         throw error.response?.data || error;
     }
 };

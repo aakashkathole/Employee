@@ -1,22 +1,29 @@
 import { StyleSheet, Text, View, ScrollView, RefreshControl, ActivityIndicator, Alert } from 'react-native';
 import React, { useEffect, useState, useCallback } from 'react';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { fetchLeaveSummary } from '../Services/leaveService';
+import { fetchLeaveSummary, fetchAllLeavesByEmployeeId } from '../Services/leaveService';
 
 export default function LeaveSummaryScreen() {
   const [leaveData, setLeaveData] = useState(null);
+  const [leaves, setLeaves] = useState([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
 
-  // fetch data
+  // fetch leave summary data and leave list
   const loadData = async () => {
     try {
       setRefreshing(true);
-      const data = await fetchLeaveSummary();
-      setLeaveData(data);
+      // calling both API same time for better performance
+      const [summary, history] = await Promise.all([
+        fetchLeaveSummary(),
+        fetchAllLeavesByEmployeeId()
+      ]);
+      
+      setLeaveData(summary);
+      setLeaves(history);
     } catch (error) {
       console.error(error);
-      Alert.alert("Error", "Failed to fetch leave summary.");
+      Alert.alert("Error", "Failed to fetch leave data.");
     } finally {
       setLoading(false);
       setRefreshing(false);
@@ -82,6 +89,48 @@ export default function LeaveSummaryScreen() {
             </View>          
         </View>
         </View>
+
+        {/* --- Table Section --- */}
+        <ScrollView horizontal showsHorizontalScrollIndicator={true}>
+          <View style={styles.tableContainer}>
+            {/* Header */}
+            <View style={[styles.tableRow, styles.tableHeader]}>
+              <Text style={[styles.headerText, { width: 40 }]}>ID</Text>
+              <Text style={[styles.headerText, { width: 100 }]}>Duration</Text>
+              <Text style={[styles.headerText, { width: 100 }]}>Applied Date</Text>
+              <Text style={[styles.headerText, { width: 100 }]}>From Date</Text>
+              <Text style={[styles.headerText, { width: 100 }]}>To Date</Text>
+              <Text style={[styles.headerText, { width: 120 }]}>Leave Type</Text>
+              <Text style={[styles.headerText, { width: 150 }]}>Reason</Text>
+              <Text style={[styles.headerText, { width: 60 }]}>Days</Text>
+              <Text style={[styles.headerText, { width: 90 }]}>Status</Text>
+            </View>
+
+            {/* Data Rows */}
+            {leaves.length > 0 ? (
+              leaves.map((item) => (
+                <View key={item.id} style={styles.tableRow}>
+                  <Text style={[styles.tableCell, { width: 40 }]}>{item.id}</Text>
+                  <Text style={[styles.tableCell, { width: 100 }]}>{item.duration}</Text>
+                  <Text style={[styles.tableCell, { width: 100 }]}>{item.leaveRequestDate}</Text>
+                  <Text style={[styles.tableCell, { width: 100 }]}>{item.fromDate}</Text>
+                  <Text style={[styles.tableCell, { width: 100 }]}>{item.toDate}</Text>
+                  <Text style={[styles.tableCell, { width: 120 }]}>{item.leaveType}</Text>
+                  <Text style={[styles.tableCell, { width: 150 }]} numberOfLines={1}>{item.reasondescription}</Text>
+                  <Text style={[styles.tableCell, { width: 60, textAlign: 'center' }]}>{item.leaveRequired}</Text>
+                  <Text style={[
+                    styles.tableCell, 
+                    { width: 90, fontWeight: 'bold', color: item.status === 'pending' ? '#f39c12' : '#28a745' }
+                  ]}>
+                    {item.status.toUpperCase()}
+                  </Text>
+                </View>
+              ))
+            ) : (
+              <Text style={{ padding: 20, textAlign: 'center' }}>No leave records found.</Text>
+            )}
+          </View>
+        </ScrollView>
       </ScrollView>
     </SafeAreaView>
   );
@@ -124,4 +173,10 @@ const styles = StyleSheet.create({
     color: '#000000',
     paddingHorizontal: 10,
   },
-});
+
+  tableContainer: { borderTopWidth: 1, borderLeftWidth: 1, borderColor: '#eee', marginTop: 5 },
+  tableRow: { flexDirection: 'row', borderBottomWidth: 1, borderColor: '#eee', alignItems: 'center' },
+  tableHeader: { backgroundColor: '#f0f0f0', borderBottomWidth: 2, borderColor: '#ccc' },
+  headerText: { padding: 10, fontWeight: 'bold', fontSize: 13, color: '#333', borderRightWidth: 1, borderColor: '#eee' },
+  tableCell: { padding: 10, fontSize: 12, color: '#444', borderRightWidth: 1, borderColor: '#eee' },
+})
