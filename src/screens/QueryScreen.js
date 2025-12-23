@@ -53,8 +53,8 @@ export default function QueryScreen() {
         <View style={styles.tableContainer}>
           {/* Header */}
           <View style={[styles.tableRow, styles.tableHeader]}>
-            <Text style={[styles.headerText, { width: 70 }]}>Sr. No</Text>
-            <Text style={[styles.headerText, { width: 200 }]}>Query</Text>
+            <Text style={[styles.headerText, { width: 65 }]}>Sr. No</Text>
+            <Text style={[styles.headerText, { width: 300 }]}>Query</Text>
             <Text style={[styles.headerText, { width: 120 }]}>Created Date</Text>
             <Text style={[styles.headerText, { width: 100 }]}>Actions</Text>
           </View>
@@ -63,8 +63,8 @@ export default function QueryScreen() {
           {queries.length > 0 ? (
             queries.map((item, index) => (
               <View key={item.id || index} style={styles.tableRow}>
-                <Text style={[styles.tableCell, { width: 70 }]}>{index + 1}</Text>
-                <Text style={[styles.tableCell, { width: 200 }]}>{item.query || 'N/A'}</Text>
+                <Text style={[styles.tableCell, { width: 65 }]}>{index + 1}</Text>
+                <Text style={[styles.tableCell, { width: 300 }]}>{item.query || 'N/A'}</Text>
                 <Text style={[styles.tableCell, { width: 120 }]}>{item.date || 'N/A'}</Text>
                 <Text style={[styles.tableCell, { width: 100 }]}>View</Text>
               </View>
