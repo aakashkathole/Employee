@@ -97,11 +97,11 @@ export default function LeaveSummaryScreen() {
             <View style={[styles.tableRow, styles.tableHeader]}>
               <Text style={[styles.headerText, { width: 40 }]}>ID</Text>
               <Text style={[styles.headerText, { width: 100 }]}>Duration</Text>
-              <Text style={[styles.headerText, { width: 100 }]}>Applied Date</Text>
+              <Text style={[styles.headerText, { width: 110 }]}>Applied Date</Text>
               <Text style={[styles.headerText, { width: 100 }]}>From Date</Text>
               <Text style={[styles.headerText, { width: 100 }]}>To Date</Text>
-              <Text style={[styles.headerText, { width: 120 }]}>Leave Type</Text>
-              <Text style={[styles.headerText, { width: 150 }]}>Reason</Text>
+              <Text style={[styles.headerText, { width: 150 }]}>Leave Type</Text>
+              <Text style={[styles.headerText, { width: 200 }]}>Reason</Text>
               <Text style={[styles.headerText, { width: 60 }]}>Days</Text>
               <Text style={[styles.headerText, { width: 90 }]}>Status</Text>
             </View>
@@ -112,11 +112,11 @@ export default function LeaveSummaryScreen() {
                 <View key={item.id} style={styles.tableRow}>
                   <Text style={[styles.tableCell, { width: 40 }]}>{item.id}</Text>
                   <Text style={[styles.tableCell, { width: 100 }]}>{item.duration}</Text>
-                  <Text style={[styles.tableCell, { width: 100 }]}>{item.leaveRequestDate}</Text>
+                  <Text style={[styles.tableCell, { width: 110 }]}>{item.leaveRequestDate}</Text>
                   <Text style={[styles.tableCell, { width: 100 }]}>{item.fromDate}</Text>
                   <Text style={[styles.tableCell, { width: 100 }]}>{item.toDate}</Text>
-                  <Text style={[styles.tableCell, { width: 120 }]}>{item.leaveType}</Text>
-                  <Text style={[styles.tableCell, { width: 150 }]} numberOfLines={1}>{item.reasondescription}</Text>
+                  <Text style={[styles.tableCell, { width: 150 }]}>{item.leaveType}</Text>
+                  <Text style={[styles.tableCell, { width: 200 }]} numberOfLines={5}>{item.reasondescription}</Text>
                   <Text style={[styles.tableCell, { width: 60, textAlign: 'center' }]}>{item.leaveRequired}</Text>
                   <Text style={[
                     styles.tableCell, 
@@ -127,7 +127,7 @@ export default function LeaveSummaryScreen() {
                 </View>
               ))
             ) : (
-              <Text style={{ padding: 20, textAlign: 'center' }}>No leave records found.</Text>
+              <Text style={{ padding: 20, fontFamily: 'Poppins-Regular', textAlign: 'center' }}>No leave records found.</Text>
             )}
           </View>
         </ScrollView>
@@ -176,7 +176,7 @@ const styles = StyleSheet.create({
 
   tableContainer: { borderTopWidth: 1, borderLeftWidth: 1, borderColor: '#eee', marginTop: 5 },
   tableRow: { flexDirection: 'row', borderBottomWidth: 1, borderColor: '#eee', alignItems: 'center' },
-  tableHeader: { backgroundColor: '#f0f0f0', borderBottomWidth: 2, borderColor: '#ccc' },
-  headerText: { padding: 10, fontWeight: 'bold', fontSize: 13, color: '#333', borderRightWidth: 1, borderColor: '#eee' },
-  tableCell: { padding: 10, fontSize: 12, color: '#444', borderRightWidth: 1, borderColor: '#eee' },
+  tableHeader: { backgroundColor: '#f8f9fa', borderBottomWidth: 2, borderColor: '#ccc' },
+  headerText: { padding: 10, fontFamily: 'Poppins-SemiBold', fontSize: 13, color: '#333', borderRightWidth: 1, borderColor: '#eee', textAlign: 'center' },
+  tableCell: { padding: 10, fontFamily: 'Poppins-Regular', fontSize: 12, color: '#444', borderRightWidth: 1, borderColor: '#eee' },
 })

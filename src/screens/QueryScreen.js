@@ -91,7 +91,7 @@ const styles = StyleSheet.create({
   tableContainer: { borderTopWidth: 1, borderLeftWidth: 1, borderColor: '#eee', margin: 5 },
   tableRow: { flexDirection: 'row', borderBottomWidth: 1, borderColor: '#eee', alignItems: 'center' },
   tableHeader: { backgroundColor: '#f8f9fa', borderBottomWidth: 2, borderColor: '#ccc' },
-  headerText: { padding: 12, fontWeight: 'bold', fontSize: 13, color: '#333', borderRightWidth: 1, borderColor: '#eee', textAlign: 'center' },
-  tableCell: { padding: 12, fontSize: 12, color: '#444', borderRightWidth: 1, borderColor: '#eee', textAlign: 'center' },
+  headerText: { padding: 12, fontFamily: 'Poppins-SemiBold', fontSize: 13, color: '#333', borderRightWidth: 1, borderColor: '#eee', textAlign: 'center' },
+  tableCell: { padding: 12, fontFamily: 'Poppins-Regular', fontSize: 12, color: '#444', borderRightWidth: 1, borderColor: '#eee', textAlign: 'center' },
   emptyText: { padding: 20, textAlign: 'center', color: '#999' }
 });
