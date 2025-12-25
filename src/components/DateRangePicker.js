@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { View, Text, TouchableOpacity, Modal, StyleSheet } from 'react-native';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import CalendarPicker from 'react-native-calendar-picker';
@@ -9,8 +9,20 @@ export default function DateRangePicker({ onChange, allowRange = true }) {
   const [startDate, setStartDate] = useState(null);
   const [endDate, setEndDate] = useState(null);
 
+  const closeTimer = useRef(null);
+
   const formatDate = (date) =>
     date ? moment(date).format('YYYY-MM-DD') : null;
+
+  // delay to allow animation to be visible
+  const closeWithDelay = () => {
+    if (closeTimer.current) {
+      clearTimeout(closeTimer.current);
+    }
+    closeTimer.current = setTimeout(() => {
+      setVisible(false);
+    }, 400); // animation-friendly delay
+  };
 
   const onDateChange = (date, type) => {
     if (type === 'END_DATE' && allowRange) {
@@ -19,7 +31,7 @@ export default function DateRangePicker({ onChange, allowRange = true }) {
         fromDate: formatDate(startDate),
         toDate: formatDate(date),
       });
-      setVisible(false);
+      closeWithDelay();
     } else {
       setStartDate(date);
       setEndDate(null);
@@ -27,7 +39,9 @@ export default function DateRangePicker({ onChange, allowRange = true }) {
         fromDate: formatDate(date),
         toDate: allowRange ? null : formatDate(date),
       });
-      if (!allowRange) setVisible(false);
+      if (!allowRange) {
+        closeWithDelay();
+      };
     }
   };
 
