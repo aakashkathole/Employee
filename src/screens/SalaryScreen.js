@@ -3,8 +3,8 @@ import React from 'react'
 
 export default function SalaryScreen() {
   return (
-    <View>
-      <Text>SalaryScreen</Text>
+    <View style={{flex: 1, backgroundColor: '#fff', alignItems: 'center', justifyContent: 'center'}}>
+      <Text style = {{fontSize: 16, color: 'red'}}>Section Under Development</Text>
     </View>
   )
 }
