@@ -1,9 +1,10 @@
 import React, { useState } from 'react';
-import { StyleSheet, Text, View, ScrollView, RefreshControl, ActivityIndicator, Alert } from 'react-native';
+import { StyleSheet, Text, View, ScrollView, ActivityIndicator, Alert, TextInput, TouchableOpacity } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import CustomPicker from "../components/CustomPicker";
 import DateRangePicker from "../components/DateRangePicker";
 import moment from 'moment';
+import { createLeaveRequest } from '../Services/leaveService';
 
 export default function ApplyLeaveScreen() {
 
@@ -13,6 +14,8 @@ export default function ApplyLeaveScreen() {
     fromDate: null,
     toDate: null,
   });
+  const [text, setText] = useState('');
+  const [loading, setLoading] = useState(false);
 
   // function to calculate leave  
   const calculateLeave = (duration, fromDate, toDate) => {
@@ -41,22 +44,61 @@ export default function ApplyLeaveScreen() {
   // Derived leave count
   const leaveCount = calculateLeave(duration, dateRange.fromDate, dateRange.toDate);
 
-  const handleApplyLeave = () => {
-    const payload = {
-      leaveDuration: duration,
-      leaveReason: reason,
+  // Reset function to clear all states
+  const resetForm = () => {
+    setDuration('Full Leave');
+    setReason('Medical Leave');
+    setDateRange({ fromDate: null, toDate: null });
+    setText('');
+  };
+  
+  const handleApplyLeave = async () => {
+
+    // Validate
+  if (!dateRange.fromDate) {
+      Alert.alert("Missing Information", "Please select a start date.");
+      return;
+    }
+    if (duration === 'Full Leave' && !dateRange.toDate) {
+      Alert.alert("Missing Information", "Please select an end date.");
+      return;
+    }
+    if (leaveCount <= 0) {
+      Alert.alert("Invalid Selection", "Selected dates fall on weekends.");
+      return;
+    }
+
+  setLoading(true);
+
+  // data for API body  
+  const leaveData = {
       fromDate: dateRange.fromDate,
-      toDate: duration === 'Full Leave' ? dateRange.toDate : dateRange.fromDate, // same day for half
-      leaveCount: leaveCount,
+      toDate: duration === 'Full Leave' ? (dateRange.toDate || dateRange.fromDate) : dateRange.fromDate, // same day for half
+      status: "pending",
+      reasondescription: text,
+      duration: duration,
+      leaveRequired: leaveCount,
+      leaveType: reason,
     };
 
-    console.log("API Payload:", payload);
-    // API call here
-  };
+    try {
+      const response = await createLeaveRequest(leaveData);
+      Alert.alert(
+        "Success",
+        "Your leave application has been submitted successfully.",
+        [{ text: "OK", onPress: () => resetForm() }]
+      );
+    } catch (error) {
+      const errorMessage = error?.message || "Something went wrong.";
+      Alert.alert("Submission Failed", errorMessage);
+    } finally {
+      setLoading(false);
+    }
+  }; 
 
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: '#fff' }}>
-      <ScrollView Style={{ backgroundColor: '#ffffff' }}>
+      <ScrollView style={{ backgroundColor: '#ffffff' }}>
         <View><Text>Leave Duration</Text></View>
         <CustomPicker 
         placeholder="Select Leave Duration"
@@ -75,12 +117,43 @@ export default function ApplyLeaveScreen() {
 
         <View><Text>Date Range</Text></View>
         <DateRangePicker 
+        value={dateRange}
         allowRange={duration === 'Full Leave'}
         onChange={setDateRange} />
         <View><Text>Leave Count: {leaveCount}</Text></View>
+        <View><Text>Leave Reason</Text></View>
+        <View style={styles.inputContainer}> 
+          <TextInput style={styles.input} onChangeText={setText} value={text} placeholder='What is the reason for leave?' keyboardType="default" />
+        </View>
+
+        <TouchableOpacity 
+        style={[
+          styles.submitBtn,
+          (!dateRange.fromDate || loading) && styles.buttonDisabled,
+        ]}
+        disabled={!dateRange.fromDate || loading}
+        onPress={handleApplyLeave}
+        >
+          {loading ? (
+            <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+              <ActivityIndicator size="small" color="#fff" />
+              <Text style={[styles.submitText, { marginLeft: 8 }]}>
+                Applying...
+                </Text>
+              </View>
+              ) : (
+              <Text style={styles.submitText}>Apply for Leave</Text>
+              )}
+        </TouchableOpacity>
       </ScrollView>
     </SafeAreaView>
   )
 }
 
-const styles = StyleSheet.create({})
+const styles = StyleSheet.create({
+  inputContainer: { marginHorizontal: 15, paddingHorizontal: 15, borderRadius: 25, borderColor: '#D1D1D1', borderWidth: 1},
+  input: { fontSize: 16, fontFamily: 'Poppins-Regular', textAlign: 'center'},
+  submitBtn: { backgroundColor: '#007AFF', alignItems: 'center', marginStart: 15, borderBottomLeftRadius: 25, borderTopLeftRadius: 25, marginVertical: 15, padding: 10},
+  submitText: { fontFamily: 'Poppins-Regular', fontSize: 16, textAlign: 'center'},
+  buttonDisabled: { opacity: 0.6}
+})

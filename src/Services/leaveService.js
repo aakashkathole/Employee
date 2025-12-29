@@ -1,11 +1,13 @@
 // services/leaveService.js
 
+import { cache } from "react";
 import apiClient from "../api/apiClient";
 import { getUserData } from '../utils/storage';
 
 // --- ENDPOINT CONFIGURATION ---
 const LEAVE_SUMMARY_ENDPOINT = '/getLeaveSummary';
 const GET_ALL_LEAVES_ENDPOINT = '/getAllLeavesByEmployeeId';
+const CREATE_LEAVE_REQUEST_ENDPOINT = '/createLeaveRequest';
 
 export const fetchLeaveSummary = async () => {
     try {
@@ -62,5 +64,32 @@ export const fetchAllLeavesByEmployeeId = async () => {
     } catch (error) {
         console.error("Error fetching leave history:", error.response?.data || error.message);
         throw error.response?.data || error;
+    }
+};
+
+export const createLeaveRequest = async (leaveData) => {
+    try{
+        const userData = await getUserData();
+
+        if(!userData || !userData.empId || !userData.role || !userData.email) {
+            throw new Error("Missing user data required to submit leave.");
+        }
+
+        const params = {
+            employeeId: userData.id,
+            role: userData.role,
+            email: userData.email,
+        };
+
+        // POST
+        const response = await apiClient.post(CREATE_LEAVE_REQUEST_ENDPOINT, leaveData, {
+            params
+        });
+
+        return response.data;
+    } catch (error) {
+        console.error("Error creating leave request:", error. response?.data || error.message);
+        throw error.response?.data || error;
+        
     }
 };
