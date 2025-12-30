@@ -1,12 +1,16 @@
-import { StyleSheet, Text, View, ScrollView, RefreshControl, ActivityIndicator, Alert } from 'react-native';
+import { StyleSheet, Text, View, ScrollView, RefreshControl, ActivityIndicator, Alert, TouchableOpacity, TextInput } from 'react-native';
 import React, { useEffect, useState } from 'react';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { fetchAllQueries } from '../Services/queryService';
+import { createNewQuery } from '../Services/queryService';
+import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 
 export default function QueryScreen() {
   const [queries, setQueries] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(true); // for fetching list
+  const [submitting, setSubmitting] = useState(false); // for submit button
   const [refreshing, setRefreshing] = useState(false);
+  const [query, setQuery] = useState('');
 
   const loadData = async (isRefreshing = false) => {
     try {
@@ -17,7 +21,7 @@ export default function QueryScreen() {
       setQueries(data);
     } catch (error) {
       console.error(error);
-      Alert.alert("Error", "Failed to fetch data.");
+      Alert.alert("Error", "Failed to fetch Query's.");
     } finally {
       setLoading(false);
       setRefreshing(false);
@@ -37,6 +41,36 @@ export default function QueryScreen() {
     );
   }
 
+  const handleSubmitQuery = async () => {
+    // Validate
+    if (!query || query.trim().length === 0) {
+      Alert.alert("Missing Information", "What is the Query ?");
+      return;
+    }
+
+    setSubmitting(true);
+
+    const queryData = {
+      query: query.trim(),
+    };
+
+    try {
+      await createNewQuery(queryData);
+      Alert.alert(
+        "Success",
+        "your query has been submitted successfully.",
+        [{text: "OK", onPress: () => setQuery('')}]
+      );
+
+      loadData(); // refresh list after submit
+
+    } catch (error) {
+      Alert.alert("Submission Failed", error.message);
+    } finally {
+      setSubmitting(false);
+    }
+  }
+
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: '#fff' }}>
       <ScrollView
@@ -46,6 +80,24 @@ export default function QueryScreen() {
           <RefreshControl refreshing={refreshing} onRefresh={() => loadData(true)} />
         }
       >
+
+        <View style={styles.container}>
+            <View style={styles.inputContainer}>
+              <TextInput style={styles.input} onChangeText={setQuery} value={query} placeholder='What is the Query ?' keyboardType="default" />
+            </View>
+            <TouchableOpacity
+            style={styles.btn}
+            onPress={handleSubmitQuery}
+            activeOpacity={0.7}
+            >
+              {submitting ? (
+                <ActivityIndicator size="small" color={'#000080'} />
+              ) : (
+                <MaterialCommunityIcons name={'send'} size={34} color="#000080" />
+              )}
+            </TouchableOpacity>
+          </View>
+
       <ScrollView 
         horizontal={true} 
         showsHorizontalScrollIndicator={true}
@@ -76,11 +128,6 @@ export default function QueryScreen() {
           )}
         </View>
       </ScrollView>
-      <View style={styles.btnContainer}>
-        <Text style={styles.btnText}>
-          New Query
-        </Text>
-      </View>
     </ScrollView>  
     </SafeAreaView>
   );
@@ -94,6 +141,8 @@ const styles = StyleSheet.create({
   headerText: { padding: 12, fontFamily: 'Poppins-SemiBold', fontSize: 13, color: '#333', borderRightWidth: 1, borderColor: '#eee', textAlign: 'center' },
   tableCell: { padding: 12, fontFamily: 'Poppins-Regular', fontSize: 12, color: '#444', borderRightWidth: 1, borderColor: '#eee', textAlign: 'center' },
   emptyText: { padding: 20, textAlign: 'center', color: '#999' },
-  btnContainer: {marginTop: 25, marginLeft: 25, padding: 10, borderStartWidth: 5, borderTopLeftRadius: 15, borderBottomLeftRadius: 15,borderColor: '#000080', backgroundColor: '#9CD3D9'},
-  btnText: {fontFamily: 'Poppins-SemiBold', fontSize: 16, textAlign: 'center',}
+  container: { paddingHorizontal: 10, paddingVertical: 25, flexDirection: 'row', },
+  inputContainer: { borderWidth: 1, borderColor: '#D1D1D1', width: '80%', justifyContent: 'center', alignItems: 'center', borderTopLeftRadius: 25, borderBottomLeftRadius: 25 },
+  input: { fontFamily: 'Poppins-Regular', fontSize: 16 },
+  btn: { borderWidth: 1, borderColor: '#D1D1D1', justifyContent: 'center', alignItems: 'center', width: '20%', borderTopRightRadius: 25, borderBottomEndRadius: 25 }
 });
