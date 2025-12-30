@@ -129,9 +129,7 @@ export default function ApplyLeaveScreen() {
         <TouchableOpacity 
         style={[
           styles.submitBtn,
-          (!dateRange.fromDate || loading) && styles.buttonDisabled,
         ]}
-        disabled={!dateRange.fromDate || loading}
         onPress={handleApplyLeave}
         >
           {loading ? (
@@ -155,5 +153,4 @@ const styles = StyleSheet.create({
   input: { fontSize: 16, fontFamily: 'Poppins-Regular', textAlign: 'center'},
   submitBtn: { backgroundColor: '#007AFF', alignItems: 'center', marginStart: 15, borderBottomLeftRadius: 25, borderTopLeftRadius: 25, marginVertical: 15, padding: 10},
   submitText: { fontFamily: 'Poppins-Regular', fontSize: 16, textAlign: 'center'},
-  buttonDisabled: { opacity: 0.6}
 })
