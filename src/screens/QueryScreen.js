@@ -76,8 +76,8 @@ export default function QueryScreen() {
           )}
         </View>
       </ScrollView>
-      <View>
-        <Text>
+      <View style={styles.btnContainer}>
+        <Text style={styles.btnText}>
           New Query
         </Text>
       </View>
@@ -93,5 +93,7 @@ const styles = StyleSheet.create({
   tableHeader: { backgroundColor: '#f8f9fa', borderBottomWidth: 2, borderColor: '#ccc' },
   headerText: { padding: 12, fontFamily: 'Poppins-SemiBold', fontSize: 13, color: '#333', borderRightWidth: 1, borderColor: '#eee', textAlign: 'center' },
   tableCell: { padding: 12, fontFamily: 'Poppins-Regular', fontSize: 12, color: '#444', borderRightWidth: 1, borderColor: '#eee', textAlign: 'center' },
-  emptyText: { padding: 20, textAlign: 'center', color: '#999' }
+  emptyText: { padding: 20, textAlign: 'center', color: '#999' },
+  btnContainer: {marginTop: 25, marginLeft: 25, padding: 10, borderStartWidth: 5, borderTopLeftRadius: 15, borderBottomLeftRadius: 15,borderColor: '#000080', backgroundColor: '#9CD3D9'},
+  btnText: {fontFamily: 'Poppins-SemiBold', fontSize: 16, textAlign: 'center',}
 });
