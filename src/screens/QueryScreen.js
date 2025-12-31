@@ -3,6 +3,7 @@ import React, { useEffect, useState } from 'react';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { fetchAllQueries } from '../Services/queryService';
 import { createNewQuery } from '../Services/queryService';
+import { deleteQuery } from '../Services/queryService';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 
 export default function QueryScreen() {
@@ -71,6 +72,29 @@ export default function QueryScreen() {
     }
   }
 
+  const handleDeleteQuery = (queryId) => {
+  Alert.alert(
+    "Confirm Delete",
+    "Are you sure you want to delete this query?",
+    [
+      { text: "Cancel", style: "cancel" },
+      {
+        text: "Delete",
+        style: "destructive",
+        onPress: async () => {
+          try {
+            const message = await deleteQuery(queryId);
+            Alert.alert("Success", message);
+            loadData();
+          } catch (error) {
+            Alert.alert("Error", error.message);
+          }
+        }
+      }
+    ]
+  );
+};
+
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: '#fff' }}>
       <ScrollView
@@ -108,7 +132,7 @@ export default function QueryScreen() {
             <Text style={[styles.headerText, { width: 65 }]}>Sr. No</Text>
             <Text style={[styles.headerText, { width: 300 }]}>Query</Text>
             <Text style={[styles.headerText, { width: 120 }]}>Created Date</Text>
-            <Text style={[styles.headerText, { width: 100 }]}>Actions</Text>
+            <Text style={[styles.headerText, { width: 120 }]}>Actions</Text>
           </View>
 
           {/* Data Rows */}
@@ -118,7 +142,16 @@ export default function QueryScreen() {
                 <Text style={[styles.tableCell, { width: 65 }]}>{index + 1}</Text>
                 <Text style={[styles.tableCell, { width: 300 }]}>{item.query || 'N/A'}</Text>
                 <Text style={[styles.tableCell, { width: 120 }]}>{item.date || 'N/A'}</Text>
-                <Text style={[styles.tableCell, { width: 100 }]}>View</Text>
+                <Text style={[styles.tableCell, { width: 120 }]}>
+                  <View style = {{ flexDirection: 'row', justifyContent: 'space-around'}}>
+                    <TouchableOpacity style={styles.pencilBtn} onPress={() => console.log('Edit pressed', item)}>
+                      <MaterialCommunityIcons name="pencil" size={24} color="#007bff" />
+                    </TouchableOpacity>
+                    <TouchableOpacity onPress={() => handleDeleteQuery(item.id)}>
+                      <MaterialCommunityIcons style={styles.deleteBtn} name="delete" size={24} color="#dc3545" />
+                  </TouchableOpacity>
+                  </View>
+                </Text>
               </View>
             ))
           ) : (
@@ -144,5 +177,7 @@ const styles = StyleSheet.create({
   container: { paddingHorizontal: 10, paddingVertical: 25, flexDirection: 'row', },
   inputContainer: { borderWidth: 1, borderColor: '#D1D1D1', width: '80%', justifyContent: 'center', alignItems: 'center', borderTopLeftRadius: 25, borderBottomLeftRadius: 25 },
   input: { fontFamily: 'Poppins-Regular', fontSize: 16 },
-  btn: { borderWidth: 1, borderColor: '#D1D1D1', justifyContent: 'center', alignItems: 'center', width: '20%', borderTopRightRadius: 25, borderBottomEndRadius: 25 }
+  btn: { borderWidth: 1, borderColor: '#D1D1D1', justifyContent: 'center', alignItems: 'center', width: '20%', borderTopRightRadius: 25, borderBottomEndRadius: 25 },
+  pencilBtn: { borderWidth: 1, paddingHorizontal: 10, paddingVertical: 3, borderColor: '#D1D1D1', borderBottomLeftRadius: 15, borderTopLeftRadius: 15 },
+  deleteBtn: { borderWidth: 1, paddingHorizontal: 7, paddingVertical: 3, borderColor: '#D1D1D1', borderTopRightRadius: 15, borderBottomRightRadius: 15 },
 });
