@@ -4,6 +4,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { fetchAllQueries } from '../Services/queryService';
 import { createNewQuery } from '../Services/queryService';
 import { deleteQuery } from '../Services/queryService';
+import { updateQuery } from '../Services/queryService';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 
 export default function QueryScreen() {
@@ -12,6 +13,8 @@ export default function QueryScreen() {
   const [submitting, setSubmitting] = useState(false); // for submit button
   const [refreshing, setRefreshing] = useState(false);
   const [query, setQuery] = useState('');
+  const [isEditing, setIsEditing] = useState(false);
+  const [editingQueryId, setEditingQueryId] = useState(null);
 
   const loadData = async (isRefreshing = false) => {
     try {
@@ -20,6 +23,12 @@ export default function QueryScreen() {
       
       const data = await fetchAllQueries();
       setQueries(data);
+
+      // Rest edit query to submit query
+      setQuery('');
+      setIsEditing(false);
+      setEditingQueryId(null);
+      
     } catch (error) {
       console.error(error);
       Alert.alert("Error", "Failed to fetch Query's.");
@@ -51,26 +60,29 @@ export default function QueryScreen() {
 
     setSubmitting(true);
 
-    const queryData = {
-      query: query.trim(),
-    };
-
     try {
-      await createNewQuery(queryData);
-      Alert.alert(
-        "Success",
-        "your query has been submitted successfully.",
-        [{text: "OK", onPress: () => setQuery('')}]
-      );
+      if (isEditing) {
+        // UPDATE
+        await updateQuery(editingQueryId, query.trim());
+        Alert.alert("Success", "Query updated successfully.");
+      } else {
+        // CREATE
+        await createNewQuery({ query: query.trim() });
+        Alert.alert("Success", "Your query has been submitted successfully.");
+      }
 
-      loadData(); // refresh list after submit
+      // Reset
+      setQuery('');
+      setIsEditing(false);
+      setEditingQueryId(null);
 
+      loadData();
     } catch (error) {
-      Alert.alert("Submission Failed", error.message);
+      Alert.alert("Error", error.message);
     } finally {
       setSubmitting(false);
     }
-  }
+  };
 
   const handleDeleteQuery = (queryId) => {
   Alert.alert(
@@ -117,7 +129,11 @@ export default function QueryScreen() {
               {submitting ? (
                 <ActivityIndicator size="small" color={'#000080'} />
               ) : (
-                <MaterialCommunityIcons name={'send'} size={34} color="#000080" />
+                <MaterialCommunityIcons 
+                name={isEditing ? 'check' : 'send'} 
+                size={34} 
+                color="#000080" 
+                />
               )}
             </TouchableOpacity>
           </View>
@@ -144,7 +160,12 @@ export default function QueryScreen() {
                 <Text style={[styles.tableCell, { width: 120 }]}>{item.date || 'N/A'}</Text>
                 <Text style={[styles.tableCell, { width: 120 }]}>
                   <View style = {{ flexDirection: 'row', justifyContent: 'space-around'}}>
-                    <TouchableOpacity style={styles.pencilBtn} onPress={() => console.log('Edit pressed', item)}>
+                    <TouchableOpacity style={styles.pencilBtn} onPress={() => {
+                      setQuery(item.query);        // prefill input
+                      setIsEditing(true);          // enable edit mode
+                      setEditingQueryId(item.id);  // store query id
+                      }}
+                    >
                       <MaterialCommunityIcons name="pencil" size={24} color="#007bff" />
                     </TouchableOpacity>
                     <TouchableOpacity onPress={() => handleDeleteQuery(item.id)}>

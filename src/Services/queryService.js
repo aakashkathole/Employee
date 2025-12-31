@@ -5,6 +5,7 @@ import { getUserData } from "../utils/storage";
 const GET_ALL_QUERIES = '/getAllEmpQueries';
 const CREATE_New_QUERY = '/createEmpQuery';
 const DELETE_QUERY = '/deleteEmpQuery';
+const UPDATE_QUERY = '/updateEmpQuery';
 
 export const fetchAllQueries = async () => {
     try {
@@ -108,6 +109,44 @@ export const deleteQuery = async (queryId) => {
             "Failed to delete query.";
 
         console.error("[QueryService] Delete failed:", message);
+        throw new Error(message);
+    }
+};
+
+export const updateQuery = async (queryId, queryText) => {
+    try {
+        const userData = await getUserData();
+
+        if (!userData?.role || !userData?.email) {
+            throw new Error("User credentials (role/email) are missing.");
+        }
+
+        if (!queryId || !queryText) {
+            throw new Error("Query ID and text are required.");
+        }
+
+        const response = await apiClient.put(
+            `${UPDATE_QUERY}/${queryId}`,
+            {
+                query: queryText,
+            },
+            {
+                params: {
+                    role: userData.role,
+                    email: userData.email,
+                }
+            }
+        );
+
+        return response.data;
+
+    } catch (error) {
+        const message =
+            error.response?.data?.message ||
+            error.message ||
+            "Failed to update query.";
+
+        console.error("[QueryService] Update failed:", message);
         throw new Error(message);
     }
 };
