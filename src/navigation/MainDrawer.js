@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, Image, StyleSheet } from 'react-native';
+import { View, Text, Image, StyleSheet, ScrollView } from 'react-native';
 import { createDrawerNavigator, DrawerContentScrollView, DrawerItemList, DrawerItem } from '@react-navigation/drawer';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import { useAuth } from '../context/AuthContext';
@@ -13,6 +13,7 @@ import LeaveTabNavigator from "../navigation/LeaveTabNavigator";
 import MemoScreen from '../screens/MemoScreen';
 import HolidayScreen from '../screens/HolidayScreen';
 import QueryScreen from '../screens/QueryScreen';
+import FeedbackScreen from '../screens/FeedbackScreen';
 
 const Drawer = createDrawerNavigator();
 
@@ -40,9 +41,11 @@ function CustomDrawerContent(props) {
         <Text style={styles.userRole}>{userRole}</Text>
       </View>
 
+      <ScrollView>
       <View style={styles.drawerList}>
         <DrawerItemList {...props} />
       </View>
+      </ScrollView>
 
       <View style={styles.logoutSection}>
         <DrawerItem
@@ -175,6 +178,19 @@ export default function MainDrawer() {
         options={{
           drawerIcon: ({ color, size }) => (
             <MaterialCommunityIcons name="comment-question-outline" color={color} size={size} />
+          ),
+          drawerLabelStyle: {
+            fontFamily: 'Poppins-Medium',
+            fontSize: 16,
+          }
+        }}
+      />
+      <Drawer.Screen
+        name="Feedback"
+        component={FeedbackScreen}
+        options={{
+          drawerIcon: ({ color, size }) => (
+            <MaterialCommunityIcons name="comment-edit-outline" color={color} size={size} />
           ),
           drawerLabelStyle: {
             fontFamily: 'Poppins-Medium',
