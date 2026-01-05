@@ -56,7 +56,7 @@ export default function DateRangePicker({ onChange, allowRange = true, value }) 
       </TouchableOpacity>
 
       {/* Modal */}
-      <Modal visible={visible} transparent animationType="slide">
+      <Modal visible={visible} transparent animationType="slide" onRequestClose={() => setVisible(false)}>
         <TouchableOpacity
           style={styles.overlay}
           activeOpacity={1}

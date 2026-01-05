@@ -86,7 +86,7 @@ export default function FeedbackScreen() {
       </ScrollView>
 
       {/* MoDaL */}
-      <Modal visible={modalVisible} transparent animationType="slide">
+      <Modal visible={modalVisible} transparent animationType="slide" onRequestClose={() => setModalVisible(false)}>
         <TouchableOpacity style={styles.modalBg} activeOpacity={1} onPress={() => setModalVisible(false)}>
           <View style={styles.modalCard}>
             <Text style={styles.modalTitle}>Submit Feedback</Text>

@@ -26,7 +26,7 @@ const CustomPicker = ({ placeholder, options, selectedValue, onValueChange }) =>
         <Text><MaterialCommunityIcons name={'chevron-down'} size={24} color='#000080' /></Text>
       </TouchableOpacity>
 
-      <Modal visible={modalVisible} transparent={true} animationType="slide">
+      <Modal visible={modalVisible} transparent={true} animationType="slide" onRequestClose={() => setModalVisible(false)}>
         <TouchableOpacity 
           style={styles.modalOverlay} 
           activeOpacity={1} 
