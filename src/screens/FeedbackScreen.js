@@ -86,32 +86,36 @@ export default function FeedbackScreen() {
       </ScrollView>
 
       {/* MoDaL */}
-      <Modal visible= {modalVisible} transparent animationType="slide">
-        <View style={styles.modalBg}>
+      <Modal visible={modalVisible} transparent animationType="slide">
+        <TouchableOpacity style={styles.modalBg} activeOpacity={1} onPress={() => setModalVisible(false)}>
           <View style={styles.modalCard}>
             <Text style={styles.modalTitle}>Submit Feedback</Text>
             {['name','department','subject','description','remark'].map(f => (
-              <TextInput key={f} placeholder={f.toUpperCase()} style={styles.input}
-                multiline={f==='description'} value={form[f]} onChangeText={v => setForm({ ...form, [f]: v })} />
-            ))}
-            <View style={styles.rowBetween}>
-              <TouchableOpacity onPress={() => setModalVisible(false)}>
-                <Text style={styles.cancelText}>Cancel</Text>
-              </TouchableOpacity>
-              <TouchableOpacity 
-              onPress={submitFeedback} 
-              disabled={submitting} 
-              style={[styles.submitButton, submitting && { opacity: 0.6 }]} 
-              >
-                {submitting ? (
-                  <ActivityIndicator size="small" color="#ffffff" />
-                ) : (
-                <Text style={styles.submitTxt}>Submit</Text>
-                )}
-              </TouchableOpacity>
-            </View>
+              <TextInput
+              key={f}
+              placeholder={f.toUpperCase()}
+              style={styles.input}
+              multiline={f === 'description'}
+              value={form[f]}
+              onChangeText={v => setForm({ ...form, [f]: v })}
+              />
+              ))}
+              <View style={styles.rowBetween}>
+                <TouchableOpacity onPress={() => setModalVisible(false)}>
+                  <Text style={styles.cancelText}>Cancel</Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                onPress={submitFeedback}
+                disabled={submitting}
+                style={[styles.submitButton, submitting && { opacity: 0.6 }]}
+                >
+                  {submitting
+                  ? <ActivityIndicator size="small" color="#ffffff" />
+                  : <Text style={styles.submitTxt}>Submit Feedback</Text>}
+                </TouchableOpacity>
+              </View>
           </View>
-        </View>
+        </TouchableOpacity>
       </Modal>
     </SafeAreaView>
   );
