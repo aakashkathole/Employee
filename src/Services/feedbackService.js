@@ -2,6 +2,7 @@ import apiClient from "../api/apiClient";
 import { getUserData } from "../utils/storage";
 
 const GET_FEEDBACK = '/getFeedBackbyEmail';
+const CREATE_FEEDBACK = '/createFeedBack';
 
 export const getFeedBack = async () => {
     try {
@@ -28,4 +29,26 @@ export const getFeedBack = async () => {
         console.error(`[FeedbackService] Fetch failed: ${errorMessage}`);
         throw error;
     }
+};
+
+export const createFeedBack = async (payload) => {
+  try {
+    const userData = await getUserData();
+    if (!userData?.role || !userData?.email) throw new Error("Missing role/email");
+
+    const response = await apiClient.post(CREATE_FEEDBACK, {
+        ...payload,
+        date: new Date().toISOString().split('T')[0],
+        status: "New",
+      },
+      {
+        params: { role: userData.role, email: userData.email }
+      }
+    );
+
+    return response.data;
+  } catch (error) {
+    console.error("Create Feedback Error:", error.response?.data || error.message);
+    throw error;
+  }
 };
