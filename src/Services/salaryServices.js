@@ -39,3 +39,13 @@ export const fetchSalaries = async ({ month, year } = {}) => {
     throw error.response?.data || error;
   }
 };
+
+export const getBranchAddress = async (branchCode) => {
+  try {
+    const response = await apiClient.get('/getBranchAddress', { params: { branchCode } });
+    return response.data;
+  } catch (error) {
+    console.error("Error fetching branch address:", error.response?.data || error.message);
+    throw error.response?.data || error;
+  }
+};

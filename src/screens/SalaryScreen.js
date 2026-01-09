@@ -1,6 +1,12 @@
-import React, { useEffect, useState, useCallback } from "react";
-import { View, Text, FlatList, TouchableOpacity, ActivityIndicator, Modal, StyleSheet, RefreshControl, ScrollView, } from "react-native";
-import { fetchSalaries } from "../Services/salaryServices";
+import React, { useEffect, useState, useCallback, useRef } from "react";
+import { View, Text, FlatList, TouchableOpacity, ActivityIndicator, Modal, StyleSheet, RefreshControl, ScrollView, Alert, Platform, ToastAndroid, BackHandler } from "react-native";
+import { WebView } from 'react-native-webview';
+import { generatePDF } from 'react-native-html-to-pdf';
+import RNFS from 'react-native-fs';
+import { fetchSalaries, getBranchAddress } from "../Services/salaryServices";
+import { generateHTML, monthName, imageUrlToBase64 } from "../utils/salaryUtils";
+import { requestAllPermissions, openAppSettings } from "../utils/permissions";
+import SalaryCard from "../components/SalaryCard";
 
 const MONTHS = ["January","February","March","April","May","June","July","August","September","October","November","December"];
 const YEARS = [2027, 2026, 2025, 2024];
@@ -13,6 +19,11 @@ const SalaryScreen = () => {
   const [selectedYear, setSelectedYear] = useState(null);
   const [monthModal, setMonthModal] = useState(false);
   const [yearModal, setYearModal] = useState(false);
+  const [isDownloading, setIsDownloading] = useState(false);
+  const [slipModal, setSlipModal] = useState(false);
+  const [slipHtml, setSlipHtml] = useState('');
+  const [slipItem, setSlipItem] = useState(null);
+  const webViewRef = useRef(null);
 
   const loadSalaries = async (month = null, year = null, isRefresh = false) => {
     try {
@@ -39,6 +50,34 @@ const SalaryScreen = () => {
     }
   }, [selectedMonth, selectedYear]);
 
+  // Handle WebView back button
+  useEffect(() => {
+    const backAction = () => {
+      if (slipModal && webViewRef.current) {
+        // Check if WebView can go back
+        webViewRef.current.injectJavaScript(`
+          (function() {
+            if (window.history.length > 1) {
+              window.history.back();
+              true;
+            } else {
+              false;
+            }
+          })();
+        `);
+        return true; // Prevent default back action when modal is open
+      }
+      return false; // Allow default back action
+    };
+
+    const backHandler = BackHandler.addEventListener(
+      'hardwareBackPress',
+      backAction
+    );
+
+    return () => backHandler.remove();
+  }, [slipModal]);
+
   const onRefresh = useCallback(() => {
     setRefreshing(true);
     setSelectedMonth(null);
@@ -52,149 +91,163 @@ const SalaryScreen = () => {
     loadSalaries(null, null);
   };
 
-  const formatAmount = (value) => {
-    const num = Number(value) || 0;
-    return num.toLocaleString('en-IN', {
-      minimumFractionDigits: 2,
-      maximumFractionDigits: 2
-    });
+  const handleDownload = async (item) => {
+    setIsDownloading(true);
+    try {
+      const branch = await getBranchAddress(item.branchCode);
+      const logoBase64 = branch?.branchImage ? await imageUrlToBase64(branch.branchImage) : null;
+      const html = generateHTML(item, branch, logoBase64);
+      setSlipHtml(html);
+      setSlipItem(item);
+      setSlipModal(true);
+    } catch (error) {
+      console.error('Error generating salary slip:', error);
+      Alert.alert('Error', 'Error generating salary slip. Please try again.');
+    } finally {
+      setIsDownloading(false);
+    }
   };
 
-  const renderSalaryCard = ({ item }) => {
-    const finalSalary = Number(item.finalNetSalary) || 0;
-    const isNegative = finalSalary < 0;
+  const downloadPDF = async () => {
+    try {
+      setIsDownloading(true);
 
-    return (
-      <View style={styles.card}>
-        {/* Header */}
-        <View style={styles.cardHeader}>
-          <View>
-            <Text style={styles.monthText}>
-              {MONTHS[item.month - 1]} {item.year}
-            </Text>
-            <Text style={styles.dateText}>Payment: {item.paymentDate}</Text>
-          </View>
-          <View style={[
-            styles.statusBadge,
-            { backgroundColor: item.status === "Paid" ? "#4CAF50" : "#FF9800" }
-          ]}>
-            <Text style={styles.statusText}>{item.status}</Text>
-          </View>
-        </View>
+      // Request permissions first
+      const permissionsGranted = await requestAllPermissions();
+      if (!permissionsGranted) {
+        Alert.alert(
+          'Permission Required',
+          'Storage permission is required to save PDF files. Please grant permission and try again.',
+          [
+            { text: 'Cancel', style: 'cancel' },
+            {
+              text: 'Open Settings',
+              onPress: openAppSettings
+            }
+          ]
+        );
+        return;
+      }
 
-        {/* Net Salary */}
-        <View style={[
-          styles.netSalaryBox,
-          isNegative && styles.netSalaryNegative
-        ]}>
-          <Text style={styles.netLabel}>Net Salary</Text>
-          <Text style={styles.netAmount}>₹{formatAmount(finalSalary)}</Text>
-        </View>
+      // Generate PDF with proper file path
+      const timestamp = Date.now();
+      const baseFileName = `salary_slip_${monthName(slipItem.month)}_${slipItem.year}_${timestamp}`;
+      const fileName = `${baseFileName}.pdf`; // Full filename with extension
+      let directory;
 
-        {/* Quick Info */}
-        <View style={styles.quickInfo}>
-          <View style={styles.infoItem}>
-            <Text style={styles.infoLabel}>Working Days</Text>
-            <Text style={styles.infoValue}>{item.workingDays}/{item.daysOfMonth}</Text>
-          </View>
-          <View style={styles.divider} />
-          <View style={styles.infoItem}>
-            <Text style={styles.infoLabel}>Transaction ID</Text>
-            <Text style={styles.infoValue}>{item.transactionId}</Text>
-          </View>
-        </View>
+      if (Platform.OS === 'android') {
+        // For Android, try multiple directory approaches
+        let possibleDirs = [
+          `${RNFS.ExternalStorageDirectoryPath}/Download`, // Primary Downloads
+          RNFS.DownloadDirectoryPath, // RNFS Downloads (may not work)
+          `${RNFS.ExternalDirectoryPath}/Downloads`, // App-specific Downloads
+        ];
 
-        {/* Earnings Section */}
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Earnings</Text>
-          <View style={styles.row}>
-            <Text style={styles.label}>Basic Salary</Text>
-            <Text style={styles.value}>₹{formatAmount(item.basicSalary)}</Text>
-          </View>
-          <View style={styles.row}>
-            <Text style={styles.label}>Actual Basic</Text>
-            <Text style={styles.value}>₹{formatAmount(item.actualBasic)}</Text>
-          </View>
-          <View style={styles.row}>
-            <Text style={styles.label}>HRA</Text>
-            <Text style={styles.value}>₹{formatAmount(item.hraAllowance)}</Text>
-          </View>
-          <View style={styles.row}>
-            <Text style={styles.label}>TA</Text>
-            <Text style={styles.value}>₹{formatAmount(item.taAllowance)}</Text>
-          </View>
-          <View style={styles.row}>
-            <Text style={styles.label}>Incentive</Text>
-            <Text style={styles.value}>₹{formatAmount(item.incentive)}</Text>
-          </View>
-          <View style={styles.row}>
-            <Text style={styles.label}>SPI</Text>
-            <Text style={styles.value}>₹{formatAmount(item.spi)}</Text>
-          </View>
-          <View style={styles.row}>
-            <Text style={styles.label}>Medical</Text>
-            <Text style={styles.value}>₹{formatAmount(item.medicalAllowance)}</Text>
-          </View>
-        </View>
+        directory = null;
+        for (let dirPath of possibleDirs) {
+          try {
+            const dirExists = await RNFS.exists(dirPath);
+            if (dirExists) {
+              directory = dirPath;
+              console.log('Using existing directory:', directory);
+              break;
+            } else {
+              // Try to create the directory
+              await RNFS.mkdir(dirPath);
+              directory = dirPath;
+              console.log('Created and using directory:', directory);
+              break;
+            }
+          } catch (error) {
+            console.log('Directory not accessible:', dirPath, error.message);
+            continue;
+          }
+        }
 
-        {/* Deductions Section */}
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Deductions</Text>
-          <View style={styles.row}>
-            <Text style={styles.label}>PF</Text>
-            <Text style={styles.value}>₹{formatAmount(item.pf)}</Text>
-          </View>
-          <View style={styles.row}>
-            <Text style={styles.label}>ESIC</Text>
-            <Text style={styles.value}>₹{formatAmount(item.esic)}</Text>
-          </View>
-          <View style={styles.row}>
-            <Text style={styles.label}>Professional Tax</Text>
-            <Text style={styles.value}>₹{formatAmount(item.professionalTax)}</Text>
-          </View>
-          <View style={styles.row}>
-            <Text style={styles.label}>Income Tax</Text>
-            <Text style={[styles.value, item.incomeTax < 0 && styles.negative]}>
-              ₹{formatAmount(item.incomeTax)}
-            </Text>
-          </View>
-          <View style={styles.row}>
-            <Text style={styles.label}>Company Fund</Text>
-            <Text style={styles.value}>₹{formatAmount(item.companyFund)}</Text>
-          </View>
-          <View style={styles.row}>
-            <Text style={styles.label}>Other Deductions</Text>
-            <Text style={styles.value}>₹{formatAmount(item.deductions)}</Text>
-          </View>
-          <View style={styles.row}>
-            <Text style={styles.label}>TDS</Text>
-            <Text style={styles.value}>₹{formatAmount(item.tds)}</Text>
-          </View>
-          {item.penalty > 0 && (
-            <View style={styles.row}>
-              <Text style={styles.label}>Penalty</Text>
-              <Text style={[styles.value, styles.penalty]}>₹{formatAmount(item.penalty)}</Text>
-            </View>
-          )}
-        </View>
+        // Final fallback
+        if (!directory) {
+          directory = RNFS.ExternalDirectoryPath;
+          console.log('Using fallback directory:', directory);
+        }
+      } else {
+        // Use Documents directory for iOS (fallback)
+        directory = RNFS.DocumentDirectoryPath;
+      }
 
-        {/* Summary */}
-        <View style={styles.summary}>
-          <View style={styles.summaryRow}>
-            <Text style={styles.summaryLabel}>Before Taxes</Text>
-            <Text style={[styles.summaryValue, item.netSalaryBeforeTaxes < 0 && styles.negative]}>
-              ₹{formatAmount(item.netSalaryBeforeTaxes)}
-            </Text>
-          </View>
-          <View style={[styles.summaryRow, styles.finalRow]}>
-            <Text style={styles.finalLabel}>Final Net Salary</Text>
-            <Text style={[styles.finalValue, isNegative && styles.negative]}>
-              ₹{formatAmount(finalSalary)}
-            </Text>
-          </View>
-        </View>
-      </View>
-    );
+      const fullPath = `${directory}/${fileName}`;
+      console.log('Target file path:', fullPath);
+
+      // Use react-native-html-to-pdf with just filename (library will handle path)
+      const options = {
+        html: slipHtml,
+        fileName: baseFileName, // Without .pdf extension to avoid double extension
+        directory: directory,
+      };
+
+      console.log('Generating PDF with options:', options);
+      const file = await generatePDF(options);
+      console.log('PDF generated at:', file.filePath);
+
+      // Check if file was created in the expected location
+      const fileExistsAtTarget = await RNFS.exists(fullPath);
+      console.log('File exists at target location:', fileExistsAtTarget, fullPath);
+
+      if (!fileExistsAtTarget && file.filePath !== fullPath) {
+        // File was created elsewhere, try to move it
+        try {
+          console.log('Moving file from', file.filePath, 'to', fullPath);
+          await RNFS.moveFile(file.filePath, fullPath);
+          console.log('File moved successfully');
+        } catch (moveError) {
+          console.warn('Could not move file:', moveError);
+          // Check if the file exists at the original location
+          const originalExists = await RNFS.exists(file.filePath);
+          if (originalExists) {
+            console.log('File exists at original location, using that path');
+          }
+        }
+      }
+
+      // Verify file exists and show success message
+      const finalFileExists = await RNFS.exists(fullPath);
+      const originalFileExists = file.filePath !== fullPath ? await RNFS.exists(file.filePath) : false;
+
+      console.log('Final file check - Target exists:', finalFileExists, 'Original exists:', originalFileExists);
+
+      if (finalFileExists || originalFileExists) {
+        // Show success notification
+        if (Platform.OS === 'android') {
+          const actualPath = finalFileExists ? fullPath : file.filePath;
+          const displayPath = actualPath.includes('Download') ? 'Downloads' :
+                             actualPath.includes('Employee') ? 'Files/Employee' : 'Files';
+          const displayFileName = actualPath.split('/').pop();
+
+          ToastAndroid.showWithGravity(
+            `Salary slip downloaded successfully!\nSaved to: ${displayPath}/${displayFileName}`,
+            ToastAndroid.LONG,
+            ToastAndroid.BOTTOM
+          );
+        } else {
+          Alert.alert(
+            'Download Complete',
+            `Salary slip saved successfully!\nFile: ${fileName}`,
+            [{ text: 'OK' }]
+          );
+        }
+      } else {
+        throw new Error('File was not saved properly');
+      }
+
+    } catch (error) {
+      console.error('Error saving salary slip:', error);
+      Alert.alert(
+        'Download Failed',
+        `Failed to save salary slip: ${error.message}\nPlease check storage permissions and try again.`,
+        [{ text: 'OK' }]
+      );
+    } finally {
+      setIsDownloading(false);
+    }
   };
 
   if (loading) {
@@ -238,7 +291,13 @@ const SalaryScreen = () => {
       <FlatList
         data={salaryList}
         keyExtractor={(item) => item.id.toString()}
-        renderItem={renderSalaryCard}
+        renderItem={({ item }) => (
+          <SalaryCard
+            item={item}
+            isDownloading={isDownloading}
+            onDownload={handleDownload}
+          />
+        )}
         showsVerticalScrollIndicator={false}
         contentContainerStyle={styles.listContent}
         refreshControl={
@@ -310,6 +369,42 @@ const SalaryScreen = () => {
           </View>
         </View>
       </Modal>
+
+      {/* Slip Modal */}
+      <Modal visible={slipModal} animationType="slide">
+        <View style={styles.slipContainer}>
+          <View style={styles.slipHeader}>
+            <Text style={styles.slipTitle}>Salary Slip</Text>
+            <TouchableOpacity onPress={() => setSlipModal(false)}>
+              <Text style={styles.slipClose}>✕</Text>
+            </TouchableOpacity>
+          </View>
+          <WebView
+            ref={webViewRef}
+            source={{ html: slipHtml }}
+            style={styles.webView}
+            javaScriptEnabled={true}
+            domStorageEnabled={true}
+            startInLoadingState={true}
+            scalesPageToFit={true}
+            allowsBackForwardNavigationGestures={true}
+            onNavigationStateChange={(navState) => {
+              // Handle WebView navigation state changes if needed
+            }}
+          />
+          <TouchableOpacity
+            style={[styles.printBtn, isDownloading && styles.disabledBtn]}
+            onPress={downloadPDF}
+            disabled={isDownloading}
+          >
+            {isDownloading ? (
+              <ActivityIndicator size="small" color="#fff" />
+            ) : (
+              <Text style={styles.printBtnText}>Download PDF</Text>
+            )}
+          </TouchableOpacity>
+        </View>
+      </Modal>
     </View>
   );
 };
@@ -374,4 +469,16 @@ const styles = StyleSheet.create({
   modalScroll: { maxHeight: 400 },
   modalItem: { padding: 16, borderBottomWidth: 1, borderBottomColor: "#f5f5f5" },
   modalItemText: { fontSize: 16, color: "#212121" },
+  // salary slip download btn
+  downloadFullBtn: { marginTop: 15, paddingVertical: 12, backgroundColor: "#f0f7ff", borderRadius: 8, borderWidth: 1, borderColor: "#2196F3", flexDirection: "row", justifyContent: "center", alignItems: "center", },
+  disabledBtn: { borderColor: "#BDBDBD", backgroundColor: "#F5F5F5", },
+  downloadBtnText: { color: "#2196F3", fontWeight: "bold", fontSize: 14, },
+  // Slip Modal
+  slipContainer: { flex: 1, backgroundColor: "#fff" },
+  slipHeader: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", padding: 16, borderBottomWidth: 1, borderBottomColor: "#e0e0e0" },
+  slipTitle: { fontSize: 18, fontWeight: "700", color: "#212121" },
+  slipClose: { fontSize: 22, color: "#757575" },
+  webView: { flex: 1 },
+  printBtn: { padding: 16, backgroundColor: "#2196F3", alignItems: "center" },
+  printBtnText: { color: "#fff", fontWeight: "600", fontSize: 16 },
 });
