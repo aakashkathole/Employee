@@ -1,4 +1,4 @@
-package com.employee
+package com.pjsofttech.employee
 
 import com.facebook.react.ReactActivity
 import com.facebook.react.ReactActivityDelegate

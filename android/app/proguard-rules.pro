@@ -8,3 +8,12 @@
 #   http://developer.android.com/guide/developing/tools/proguard.html
 
 # Add any project specific keep options here:
+# PDFBox ani Gemalto missing classes sathi
+-dontwarn com.tom_roush.pdfbox.**
+-dontwarn com.gemalto.jp2.**
+-keep class com.tom_roush.pdfbox.** { *; }
+
+# General React Native rules (jar nastil tar add kara)
+-keep class com.facebook.react.** { *; }
+-keep public class com.facebook.hermes.unicode.** { *; }
+-dontwarn com.facebook.react.**

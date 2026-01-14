@@ -1,4 +1,4 @@
-package com.employee
+package com.pjsofttech.employee
 
 import android.app.Application
 import com.facebook.react.PackageList
