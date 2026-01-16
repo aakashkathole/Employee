@@ -1,13 +1,15 @@
 import { useEffect, useState } from "react";
-import {  StyleSheet, Text, View, ScrollView, RefreshControl, ActivityIndicator, Image, TouchableOpacity  } from 'react-native'
+import {  StyleSheet, Text, View, ScrollView, RefreshControl, ActivityIndicator, Image, TouchableOpacity, Modal } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import AppHeader from '../components/AppHeader';
 import { getDashboardData } from "../Services/dashboardService";
+import MonthlyAttendanceModal from "../components/MonthlyAttendanceModal";
 
 import React from 'react'
 
 export default function DashboardScreen({ navigation }) {
+  const [attendanceVisible, setAttendanceVisible] = useState(false);
   const [loading, setLoading] = useState(true);
   const [dashboardData, setDashboardData] = useState(null);
   const [error, setError] = useState("");
@@ -206,7 +208,7 @@ export default function DashboardScreen({ navigation }) {
 <View style={styles.spacer} />
 
 {/* Action Cards */}
-<TouchableOpacity style={styles.actionCard}>
+<TouchableOpacity style={styles.actionCard} onPress={() => setAttendanceVisible(true)}>
   <View style={styles.contentHeader}>
     <View style={[styles.actionIconContainer, { backgroundColor: '#E3F2FD' }]}>
       <MaterialCommunityIcons name="chart-bar-stacked" size={28} color='#1e90ff' />
@@ -256,6 +258,8 @@ export default function DashboardScreen({ navigation }) {
 </View>
 </ScrollView>
   )}
+  {/* Monthly Attendance Modal */}
+    <MonthlyAttendanceModal visible={attendanceVisible} onClose={() => setAttendanceVisible(false)} />
     </SafeAreaView>
   )
 }
