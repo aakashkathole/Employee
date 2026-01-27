@@ -5,11 +5,13 @@ import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityI
 import AppHeader from '../components/AppHeader';
 import { getDashboardData } from "../Services/dashboardService";
 import MonthlyAttendanceModal from "../components/MonthlyAttendanceModal";
+import YearlySalaryModal from "../components/YearlySalaryModal";
 
 import React from 'react'
 
 export default function DashboardScreen({ navigation }) {
   const [attendanceVisible, setAttendanceVisible] = useState(false);
+  const [salaryVisible, setSalaryVisible] = useState(false);
   const [loading, setLoading] = useState(true);
   const [dashboardData, setDashboardData] = useState(null);
   const [error, setError] = useState("");
@@ -223,7 +225,7 @@ export default function DashboardScreen({ navigation }) {
 
 <View style={styles.spacer} />
 
-<TouchableOpacity style={styles.actionCard}>
+<TouchableOpacity style={styles.actionCard} onPress={() => setSalaryVisible(true)}>
   <View style={styles.contentHeader}>
     <View style={[styles.actionIconContainer, { backgroundColor: '#E8F5E9' }]}>
       <MaterialCommunityIcons name="trending-up" size={28} color='#3cb371' />
@@ -260,6 +262,7 @@ export default function DashboardScreen({ navigation }) {
   )}
   {/* Monthly Attendance Modal */}
     <MonthlyAttendanceModal visible={attendanceVisible} onClose={() => setAttendanceVisible(false)} />
+    <YearlySalaryModal visible={salaryVisible} onClose={() => setSalaryVisible(false)} />
     </SafeAreaView>
   )
 }
