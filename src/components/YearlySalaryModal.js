@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useCallback, useMemo } from "react";
-import { Modal, View, Text, StyleSheet, TouchableOpacity, ActivityIndicator, ScrollView, FlatList } from "react-native";
+import { Modal, View, Text, StyleSheet, TouchableOpacity, ActivityIndicator, ScrollView, FlatList, TouchableWithoutFeedback } from "react-native";
 import MaterialCommunityIcons from "react-native-vector-icons/MaterialCommunityIcons";
 import apiClient from "../api/apiClient";
 import { getToken, getUserData } from "../utils/storage";
@@ -69,9 +69,10 @@ export default function YearlySalaryModal({ visible, onClose }) {
   };
 
   return (
-    <Modal visible={visible} transparent animationType="slide">
-      <View style={styles.overlay}>
-        <View style={styles.modalContainer}>
+    <Modal visible={visible} transparent animationType="slide" onRequestClose={onClose}>
+      <TouchableOpacity style={styles.overlay} activeOpacity={1} onPress={onClose}>
+        <TouchableWithoutFeedback>
+          <View style={styles.modalContainer}>
           
           {/* HEADER SECTION */}
           <View style={styles.header}>
@@ -192,7 +193,8 @@ export default function YearlySalaryModal({ visible, onClose }) {
             </ScrollView>
           )}
         </View>
-      </View>
+        </TouchableWithoutFeedback>
+      </TouchableOpacity>
     </Modal>
   );
 }

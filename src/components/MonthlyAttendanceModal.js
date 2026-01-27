@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState, useCallback } from "react";
-import { Modal, View, Text, StyleSheet, TouchableOpacity, ActivityIndicator, } from "react-native";
+import { Modal, View, Text, StyleSheet, TouchableOpacity, ActivityIndicator, TouchableWithoutFeedback } from "react-native";
 import CalendarPicker from "react-native-calendar-picker";
 import MaterialCommunityIcons from "react-native-vector-icons/MaterialCommunityIcons";
 import apiClient from "../api/apiClient";
@@ -67,8 +67,9 @@ export default function MonthlyAttendanceModal({ visible, onClose }) {
     .length;
 
   return (
-    <Modal visible={visible} transparent animationType="slide">
-      <View style={styles.overlay}>
+    <Modal visible={visible} transparent animationType="slide" onRequestClose={onClose}>
+      <TouchableOpacity style={styles.overlay} activeOpacity={1} onPress={onClose}>
+        <TouchableWithoutFeedback>
         <View style={styles.modalContainer}>
           {/* HEADER */}
           <View style={styles.header}>
@@ -137,7 +138,8 @@ export default function MonthlyAttendanceModal({ visible, onClose }) {
             <Text style={styles.legendItem}>🔵 Today</Text>
           </View>
         </View>
-      </View>
+        </TouchableWithoutFeedback>
+      </TouchableOpacity>
     </Modal>
   );
 }
