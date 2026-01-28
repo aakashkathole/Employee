@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useCallback, useMemo } from "react";
-import { Modal, View, Text, StyleSheet, TouchableOpacity, ActivityIndicator, ScrollView, FlatList, TouchableWithoutFeedback } from "react-native";
+import { Modal, View, Text, StyleSheet, TouchableOpacity, ActivityIndicator, FlatList } from "react-native";
 import MaterialCommunityIcons from "react-native-vector-icons/MaterialCommunityIcons";
 import apiClient from "../api/apiClient";
 import { getToken, getUserData } from "../utils/storage";
@@ -43,10 +43,11 @@ export default function YearlySalaryModal({ visible, onClose }) {
     if (visible) {
       fetchYearlySalary();
     }
-  }, [visible, fetchYearlySalary]);
+  }, [visible, selectedYear, fetchYearlySalary]);
 
   // Sum up all monthly values for the year
   const totalYearly = useMemo(() => {
+    if(!salaryData||typeof salaryData!=="object")return 0;
     return Object.values(salaryData).reduce((acc, curr) => acc + (curr || 0), 0);
   }, [salaryData]);
 
@@ -65,13 +66,14 @@ export default function YearlySalaryModal({ visible, onClose }) {
 
   const handleYearSelect = (year) => {
     setSelectedYear(year);
+    setSalaryData({});
     setShowYearPicker(false);
   };
 
   return (
     <Modal visible={visible} transparent animationType="slide" onRequestClose={onClose}>
-      <TouchableOpacity style={styles.overlay} activeOpacity={1} onPress={onClose}>
-        <TouchableWithoutFeedback>
+      <View style={styles.overlayContainer}>
+      <TouchableOpacity style={styles.overlay} activeOpacity={1} onPress={onClose} />
           <View style={styles.modalContainer}>
           
           {/* HEADER SECTION */}
@@ -154,54 +156,57 @@ export default function YearlySalaryModal({ visible, onClose }) {
               </Text>
             </View>
           ) : (
-            <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 20 }}>
-              {months.map((month, index) => {
-                const amount = salaryData[month] || 0;
-                return (
-                  <TouchableOpacity 
-                    key={month} 
-                    style={[
-                      styles.salaryRow,
-                      index === months.length - 1 && { borderBottomWidth: 0 }
+            <FlatList
+            key={selectedYear}
+            data={months}
+            keyExtractor={(item) => item}
+            showsVerticalScrollIndicator={false}
+            contentContainerStyle={{ paddingBottom: 20 }}
+            ItemSeparatorComponent={() => <View style={styles.separator} />}
+            renderItem={({ item: month }) => {
+              const amount = salaryData[month] || 0;
+              return (
+              <TouchableOpacity 
+              style={styles.salaryRow}
+              activeOpacity={amount > 0 ? 0.7 : 1}
+              disabled={amount === 0}
+              >
+                <View style={styles.monthInfo}>
+                  <Text style={styles.monthName}>{month}</Text>
+                  <Text style={[
+                    styles.amountText, 
+                    amount < 0 && { color: '#ff4444' },
+                    amount === 0 && { fontStyle: 'italic', color: '#999' }
                     ]}
-                    activeOpacity={amount > 0 ? 0.7 : 1}
-                    disabled={amount === 0}
                   >
-                    <View style={styles.monthInfo}>
-                      <Text style={styles.monthName}>{month}</Text>
-                      <Text style={[
-                        styles.amountText, 
-                        amount < 0 && { color: '#ff4444' },
-                        amount === 0 && { fontStyle: 'italic', color: '#999' }
-                      ]}>
-                        {amount === 0 ? "No Record" : `₹ ${amount.toLocaleString('en-IN')}`}
-                      </Text>
-                    </View>
-                    <View style={[
-                      styles.statusIndicator, 
-                      { backgroundColor: amount > 0 ? '#E8F5E9' : amount < 0 ? '#FFEBEE' : '#F5F5F5' }
+                      {amount === 0 ? "No Record" : `₹ ${amount.toLocaleString('en-IN')}`}
+                  </Text>
+                </View>
+                <View style={[
+                  styles.statusIndicator, 
+                    { backgroundColor: amount > 0 ? '#E8F5E9' : amount < 0 ? '#FFEBEE' : '#F5F5F5' }
                     ]}>
                       <MaterialCommunityIcons 
                         name={amount > 0 ? "check-circle" : amount < 0 ? "alert-circle" : "clock-outline"} 
                         size={18} 
                         color={amount > 0 ? "#3cb371" : amount < 0 ? "#ff4444" : "#bdbdbd"} 
                       />
-                    </View>
-                  </TouchableOpacity>
-                );
-              })}
-            </ScrollView>
-          )}
-        </View>
-        </TouchableWithoutFeedback>
-      </TouchableOpacity>
+                </View>
+              </TouchableOpacity>
+              );
+            }}
+            />
+            )}
+          </View>
+      </View>
     </Modal>
   );
 }
 
 const styles = StyleSheet.create({
-  overlay: { flex: 1, backgroundColor: "rgba(0,0,0,0.5)", justifyContent: "flex-end" },
-  modalContainer: { backgroundColor: "#fff", borderTopLeftRadius: 24, borderTopRightRadius: 24, padding: 20, maxHeight: '85%' },
+  overlayContainer:{ flex: 1, justifyContent: "flex-end"},
+  overlay: { ...StyleSheet.absoluteFillObject, backgroundColor: "rgba(0,0,0,0.5)"},
+  modalContainer: { backgroundColor: "#fff", borderTopLeftRadius: 24, borderTopRightRadius: 24, padding: 20, height: '85%' },
   header: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginBottom: 15 },
   yearDropdown: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#F0F7F8', paddingHorizontal: 15, paddingVertical: 8, borderRadius: 12 },
   title: { fontSize: 18, fontFamily: "Poppins-Bold", color: "#0B5D69", marginRight: 5 },
@@ -225,7 +230,8 @@ const styles = StyleSheet.create({
   emptyIconCircle: { width: 100, height: 100, borderRadius: 50, backgroundColor: '#F0F7F8', justifyContent: 'center', alignItems: 'center', marginBottom: 20 },
   emptyTitle: { fontFamily: 'Poppins-SemiBold', fontSize: 18, color: '#333', marginBottom: 8 },
   emptySubtitle: { fontFamily: 'Poppins-Regular', fontSize: 14, color: '#666', textAlign: 'center', lineHeight: 20 },
-  salaryRow: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", paddingVertical: 18, paddingHorizontal: 4, borderBottomWidth: 1, borderBottomColor: "#f0f0f0", backgroundColor: '#fff' },
+  separator: { height: 1, backgroundColor: "#f0f0f0", marginHorizontal: 4 },
+  salaryRow: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", paddingVertical: 18, paddingHorizontal: 4, borderBottomColor: "#f0f0f0", backgroundColor: '#fff' },
   monthInfo: { flex: 1 },
   monthName: { fontSize: 15, fontFamily: "Poppins-SemiBold", color: "#222", letterSpacing: 0.2 },
   amountText: { fontSize: 14, fontFamily: "Poppins-Medium", color: "#666", marginTop: 2 },
