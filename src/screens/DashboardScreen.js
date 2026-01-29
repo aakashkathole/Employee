@@ -6,12 +6,14 @@ import AppHeader from '../components/AppHeader';
 import { getDashboardData } from "../Services/dashboardService";
 import MonthlyAttendanceModal from "../components/MonthlyAttendanceModal";
 import YearlySalaryModal from "../components/YearlySalaryModal";
+import YearlyLeaveModal from "../components/YearlyLeaveModal";
 
 import React from 'react'
 
 export default function DashboardScreen({ navigation }) {
   const [attendanceVisible, setAttendanceVisible] = useState(false);
   const [salaryVisible, setSalaryVisible] = useState(false);
+  const [leaveVisible, setLeaveVisible] = useState(false);
   const [loading, setLoading] = useState(true);
   const [dashboardData, setDashboardData] = useState(null);
   const [error, setError] = useState("");
@@ -240,7 +242,7 @@ export default function DashboardScreen({ navigation }) {
 
 <View style={styles.spacer} />
 
-<TouchableOpacity style={styles.actionCard}>
+<TouchableOpacity style={styles.actionCard} onPress={() => setLeaveVisible(true)}>
   <View style={styles.contentHeader}>
     <View style={[styles.actionIconContainer, { backgroundColor: '#FFFDE7' }]}>
       <MaterialCommunityIcons name="calendar-text-outline" size={28} color='#FFD700' />
@@ -260,9 +262,10 @@ export default function DashboardScreen({ navigation }) {
 </View>
 </ScrollView>
   )}
-  {/* Monthly Attendance Modal */}
+  {/* Modals */}
     <MonthlyAttendanceModal visible={attendanceVisible} onClose={() => setAttendanceVisible(false)} />
     <YearlySalaryModal visible={salaryVisible} onClose={() => setSalaryVisible(false)} />
+    <YearlyLeaveModal visible={leaveVisible} onClose={() => setLeaveVisible(false)} />
     </SafeAreaView>
   )
 }
