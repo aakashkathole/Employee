@@ -65,7 +65,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     backgroundColor: '#FFF',
   },
-  valueText: { fontSize: 16, color: '#000' },
+  valueText: { fontSize: 16, color: '#000', fontFamily: 'Poppins-Regular', },
   placeholderText: { color: '#999' }, // Grey hint text
   modalOverlay: { 
     flex: 1, 
