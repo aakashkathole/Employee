@@ -55,12 +55,8 @@ export default function ApplyLeaveScreen() {
   const handleApplyLeave = async () => {
 
     // Validate
-  if (!dateRange.fromDate) {
-      Alert.alert("Missing Information", "Please select a start date.");
-      return;
-    }
-    if (duration === 'Full Leave' && !dateRange.toDate) {
-      Alert.alert("Missing Information", "Please select an end date.");
+    if (!dateRange.fromDate) {
+      Alert.alert("Missing Information", "Please select a leave date.");
       return;
     }
     if (leaveCount <= 0) {
@@ -104,7 +100,10 @@ export default function ApplyLeaveScreen() {
         placeholder="Select Leave Duration"
         options={['Full Leave', 'First Half', 'Second Half']}
         selectedValue={duration}
-        onValueChange={(val) => setDuration(val)}
+        onValueChange={(val) => {
+          setDuration(val);
+          setDateRange({ fromDate: null, toDate: null });
+        }}
         />
 
         <View><Text>Leave Reason</Text></View>
@@ -112,13 +111,17 @@ export default function ApplyLeaveScreen() {
         placeholder="Select Leave Reason"
         options={['Medical Leave', 'Emergency Leave', 'Casual Leave']}
         selectedValue={reason}
-        onValueChange={(val) => setReason(val)}
+        onValueChange={(val) => {
+          setReason(val);
+          setDateRange({ fromDate: null, toDate: null });
+        }}
         />
 
         <View><Text>Date Range</Text></View>
         <DateRangePicker 
         value={dateRange}
         allowRange={duration === 'Full Leave'}
+        duration={duration}
         onChange={setDateRange} />
         <View><Text>Leave Count: {leaveCount}</Text></View>
         <View><Text>Leave Reason</Text></View>
