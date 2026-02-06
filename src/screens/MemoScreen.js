@@ -119,143 +119,30 @@ export default function MemoScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#f5f5f5',
-  },
-  center: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: '#f5f5f5',
-  },
-  loadingText: {
-    marginTop: 12,
-    fontFamily: 'Poppins-Regular',
-    fontSize: 14,
-    color: '#666',
-  },
-  
+  container: { flex: 1, backgroundColor: '#f5f5f5', },
+  center: { flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#f5f5f5', },
+  loadingText: { marginTop: 12, fontFamily: 'Poppins-Regular', fontSize: 14, color: '#666', },
   // Header Styles
-  header: {
-    backgroundColor: '#fff',
-    paddingHorizontal: 20,
-    paddingTop: 16,
-    paddingBottom: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: '#e0e0e0',
-    elevation: 2,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.1,
-    shadowRadius: 2,
-  },
-  headerTitle: {
-    fontFamily: 'Poppins-Bold',
-    fontSize: 24,
-    color: '#333',
-    marginBottom: 4,
-  },
-  headerSubtitle: {
-    fontFamily: 'Poppins-Regular',
-    fontSize: 14,
-    color: '#666',
-  },
-
+  header: { backgroundColor: '#fff', paddingHorizontal: 20, paddingTop: 16, paddingBottom: 16, borderBottomWidth: 1, borderBottomColor: '#e0e0e0', elevation: 2, shadowColor: '#000', shadowOffset: { width: 0, height: 1 },
+  shadowOpacity: 0.1, shadowRadius: 2, },
+  headerTitle: { fontFamily: 'Poppins-Bold', fontSize: 24, color: '#333', marginBottom: 4, },
+  headerSubtitle: { fontFamily: 'Poppins-Regular', fontSize: 14, color: '#666', },
   // List Styles
-  listContent: {
-    padding: 16,
-    flexGrow: 1,
-  },
-
+  listContent: { padding: 16, flexGrow: 1, },
   // Card Styles
-  card: {
-    backgroundColor: '#fff',
-    borderRadius: 12,
-    padding: 16,
-    marginBottom: 16,
-    elevation: 3,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 3,
-    borderLeftWidth: 4,
-    borderLeftColor: '#007bff',
-  },
-  cardTopRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 12,
-  },
-  cardNumber: {
-    fontFamily: 'Poppins-SemiBold',
-    fontSize: 12,
-    color: '#007bff',
-    backgroundColor: '#e3f2fd',
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-    borderRadius: 6,
-  },
-  cardDate: {
-    fontFamily: 'Poppins-Regular',
-    fontSize: 12,
-    color: '#999',
-  },
-
+  card: { backgroundColor: '#fff', borderRadius: 12, padding: 16, marginBottom: 16, elevation: 3, shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.1, shadowRadius: 3, borderLeftWidth: 4, borderLeftColor: '#007bff', },
+  cardTopRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12, },
+  cardNumber: { fontFamily: 'Poppins-SemiBold', fontSize: 12, color: '#007bff', backgroundColor: '#e3f2fd', paddingHorizontal: 10, paddingVertical: 4, borderRadius: 6, },
+  cardDate: { fontFamily: 'Poppins-Regular', fontSize: 12, color: '#999', },
   // Card Section Styles
-  cardSection: {
-    marginBottom: 12,
-  },
-  label: {
-    fontFamily: 'Poppins-Medium',
-    fontSize: 11,
-    color: '#999',
-    textTransform: 'uppercase',
-    letterSpacing: 0.5,
-    marginBottom: 4,
-  },
-  memoName: {
-    fontFamily: 'Poppins-SemiBold',
-    fontSize: 17,
-    color: '#333',
-    lineHeight: 24,
-  },
-  description: {
-    fontFamily: 'Poppins-Regular',
-    fontSize: 14,
-    color: '#666',
-    lineHeight: 20,
-  },
-  tapHint: {
-    fontFamily: 'Poppins-Regular',
-    fontSize: 11,
-    color: '#007bff',
-    textAlign: 'right',
-    marginTop: 4,
-    fontStyle: 'italic',
-  },
-
+  cardSection: { marginBottom: 12, },
+  label: { fontFamily: 'Poppins-Medium', fontSize: 11, color: '#999', textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 4, },
+  memoName: { fontFamily: 'Poppins-SemiBold', fontSize: 17, color: '#333', lineHeight: 24, },
+  description: { fontFamily: 'Poppins-Regular', fontSize: 14, color: '#666', lineHeight: 20, },
+  tapHint: { fontFamily: 'Poppins-Regular', fontSize: 11, color: '#007bff', textAlign: 'right', marginTop: 4, fontStyle: 'italic', },
   // Empty State Styles
-  emptyContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    paddingVertical: 60,
-  },
-  emptyIcon: {
-    fontSize: 64,
-    marginBottom: 16,
-  },
-  emptyTitle: {
-    fontFamily: 'Poppins-SemiBold',
-    fontSize: 18,
-    color: '#333',
-    marginBottom: 8,
-  },
-  emptySubtitle: {
-    fontFamily: 'Poppins-Regular',
-    fontSize: 14,
-    color: '#999',
-  },
+  emptyContainer: { flex: 1, justifyContent: 'center', alignItems: 'center', paddingVertical: 60, },
+  emptyIcon: { fontSize: 64, marginBottom: 16, },
+  emptyTitle: { fontFamily: 'Poppins-SemiBold', fontSize: 18, color: '#333', marginBottom: 8, },
+  emptySubtitle: { fontFamily: 'Poppins-Regular', fontSize: 14, color: '#999', },
 });
