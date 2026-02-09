@@ -1,4 +1,4 @@
-import { StyleSheet, Text, View, ScrollView, RefreshControl, ActivityIndicator, Alert, TouchableOpacity, TextInput } from 'react-native';
+import { StyleSheet, Text, View, ScrollView, RefreshControl, ActivityIndicator, Alert, TouchableOpacity, TextInput, Keyboard, Dimensions } from 'react-native';
 import React, { useEffect, useState } from 'react';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { fetchAllQueries } from '../Services/queryService';
@@ -7,10 +7,12 @@ import { deleteQuery } from '../Services/queryService';
 import { updateQuery } from '../Services/queryService';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 
+const { width } = Dimensions.get('window');
+
 export default function QueryScreen() {
   const [queries, setQueries] = useState([]);
-  const [loading, setLoading] = useState(true); // for fetching list
-  const [submitting, setSubmitting] = useState(false); // for submit button
+  const [loading, setLoading] = useState(true);
+  const [submitting, setSubmitting] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
   const [query, setQuery] = useState('');
   const [isEditing, setIsEditing] = useState(false);
@@ -24,14 +26,14 @@ export default function QueryScreen() {
       const data = await fetchAllQueries();
       setQueries(data);
 
-      // Rest edit query to submit query
+      // Reset edit query to submit query
       setQuery('');
       setIsEditing(false);
       setEditingQueryId(null);
       
     } catch (error) {
       console.error(error);
-      Alert.alert("Error", "Failed to fetch Query's.");
+      Alert.alert("Error", "Failed to fetch queries.");
     } finally {
       setLoading(false);
       setRefreshing(false);
@@ -54,10 +56,11 @@ export default function QueryScreen() {
   const handleSubmitQuery = async () => {
     // Validate
     if (!query || query.trim().length === 0) {
-      Alert.alert("Missing Information", "What is the Query ?");
+      Alert.alert("Missing Information", "What is the query?");
       return;
     }
 
+    Keyboard.dismiss();
     setSubmitting(true);
 
     try {
@@ -84,121 +87,204 @@ export default function QueryScreen() {
     }
   };
 
+  const handleCancelEdit = () => {
+    setQuery('');
+    setIsEditing(false);
+    setEditingQueryId(null);
+  };
+
   const handleDeleteQuery = (queryId) => {
-  Alert.alert(
-    "Confirm Delete",
-    "Are you sure you want to delete this query?",
-    [
-      { text: "Cancel", style: "cancel" },
-      {
-        text: "Delete",
-        style: "destructive",
-        onPress: async () => {
-          try {
-            const message = await deleteQuery(queryId);
-            Alert.alert("Success", message);
-            loadData();
-          } catch (error) {
-            Alert.alert("Error", error.message);
+    Alert.alert(
+      "Confirm Delete",
+      "Are you sure you want to delete this query?",
+      [
+        { text: "Cancel", style: "cancel" },
+        {
+          text: "Delete",
+          style: "destructive",
+          onPress: async () => {
+            try {
+              const message = await deleteQuery(queryId);
+              Alert.alert("Success", message);
+              loadData();
+            } catch (error) {
+              Alert.alert("Error", error.message);
+            }
           }
         }
-      }
-    ]
+      ]
+    );
+  };
+
+  const renderEmptyState = () => (
+    <View style={styles.emptyStateContainer}>
+      <MaterialCommunityIcons name="message-question-outline" size={80} color="#ccc" />
+      <Text style={styles.emptyStateTitle}>No Queries Yet</Text>
+      <Text style={styles.emptyStateText}>Submit your first query using the form above</Text>
+    </View>
   );
-};
+
+  const renderQueryCard = (item, index) => (
+    <View key={item.id || index} style={[
+      styles.card,
+      isEditing && editingQueryId === item.id && styles.cardEditing
+    ]}>
+      <View style={styles.cardHeader}>
+        <View style={styles.cardBadge}>
+          <Text style={styles.cardBadgeText}>#{index + 1}</Text>
+        </View>
+        <Text style={styles.cardDate}>{item.date || 'N/A'}</Text>
+      </View>
+      
+      <Text style={styles.cardQuery}>{item.query || 'N/A'}</Text>
+      
+      <View style={styles.cardActions}>
+        <TouchableOpacity 
+          style={styles.editButton} 
+          onPress={() => {
+            setQuery(item.query);
+            setIsEditing(true);
+            setEditingQueryId(item.id);
+          }}
+          activeOpacity={0.7}
+        >
+          <MaterialCommunityIcons name="pencil" size={20} color="#007bff" />
+          <Text style={styles.editButtonText}>Edit</Text>
+        </TouchableOpacity>
+        
+        <TouchableOpacity 
+          style={styles.deleteButton} 
+          onPress={() => handleDeleteQuery(item.id)}
+          activeOpacity={0.7}
+        >
+          <MaterialCommunityIcons name="delete" size={20} color="#dc3545" />
+          <Text style={styles.deleteButtonText}>Delete</Text>
+        </TouchableOpacity>
+      </View>
+    </View>
+  );
 
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: '#fff' }}>
+    <SafeAreaView style={styles.safeArea}>
       <ScrollView
-      contentContainerStyle={{ backgroundColor: '#ffffff' }}
-
-      refreshControl={
+        contentContainerStyle={styles.scrollContent}
+        refreshControl={
           <RefreshControl refreshing={refreshing} onRefresh={() => loadData(true)} />
         }
+        keyboardShouldPersistTaps="handled"
       >
-
-        <View style={styles.container}>
-            <View style={styles.inputContainer}>
-              <TextInput style={styles.input} onChangeText={setQuery} value={query} placeholder='What is the Query ?' keyboardType="default" />
+        {/* Input Section */}
+        <View style={styles.inputSection}>
+          <Text style={styles.sectionTitle}>
+            {isEditing ? 'Edit Query' : 'Submit New Query'}
+          </Text>
+          
+          {isEditing && (
+            <View style={styles.editModeBanner}>
+              <MaterialCommunityIcons name="information" size={18} color="#856404" />
+              <Text style={styles.editModeText}>Editing mode active</Text>
+              <TouchableOpacity onPress={handleCancelEdit} style={styles.cancelButton}>
+                <Text style={styles.cancelButtonText}>Cancel</Text>
+              </TouchableOpacity>
             </View>
-            <TouchableOpacity
-            style={styles.btn}
+          )}
+
+          <View style={[styles.inputContainer, isEditing && styles.inputContainerEditing]}>
+            <TextInput 
+              style={styles.input} 
+              onChangeText={setQuery} 
+              value={query} 
+              placeholder='What is your query?' 
+              placeholderTextColor="#999"
+              multiline
+              numberOfLines={3}
+              textAlignVertical="top"
+              returnKeyType="send"
+              onSubmitEditing={handleSubmitQuery}
+            />
+          </View>
+
+          <TouchableOpacity
+            style={[styles.submitButton, submitting && styles.submitButtonDisabled]}
             onPress={handleSubmitQuery}
             activeOpacity={0.7}
-            >
-              {submitting ? (
-                <ActivityIndicator size="small" color={'#000080'} />
-              ) : (
+            disabled={submitting}
+          >
+            {submitting ? (
+              <ActivityIndicator size="small" color="#fff" />
+            ) : (
+              <>
                 <MaterialCommunityIcons 
-                name={isEditing ? 'check' : 'send'} 
-                size={34} 
-                color="#000080" 
+                  name={isEditing ? 'check' : 'send'} 
+                  size={20} 
+                  color="#fff" 
                 />
-              )}
-            </TouchableOpacity>
-          </View>
-
-      <ScrollView 
-        horizontal={true} 
-        showsHorizontalScrollIndicator={true}
-      >
-        <View style={styles.tableContainer}>
-          {/* Header */}
-          <View style={[styles.tableRow, styles.tableHeader]}>
-            <Text style={[styles.headerText, { width: 65 }]}>Sr. No</Text>
-            <Text style={[styles.headerText, { width: 300 }]}>Query</Text>
-            <Text style={[styles.headerText, { width: 120 }]}>Created Date</Text>
-            <Text style={[styles.headerText, { width: 120 }]}>Actions</Text>
-          </View>
-
-          {/* Data Rows */}
-          {queries.length > 0 ? (
-            queries.map((item, index) => (
-              <View key={item.id || index} style={styles.tableRow}>
-                <Text style={[styles.tableCell, { width: 65 }]}>{index + 1}</Text>
-                <Text style={[styles.tableCell, { width: 300 }]}>{item.query || 'N/A'}</Text>
-                <Text style={[styles.tableCell, { width: 120 }]}>{item.date || 'N/A'}</Text>
-                <Text style={[styles.tableCell, { width: 120 }]}>
-                  <View style = {{ flexDirection: 'row', justifyContent: 'space-around'}}>
-                    <TouchableOpacity style={styles.pencilBtn} onPress={() => {
-                      setQuery(item.query);        // prefill input
-                      setIsEditing(true);          // enable edit mode
-                      setEditingQueryId(item.id);  // store query id
-                      }}
-                    >
-                      <MaterialCommunityIcons name="pencil" size={24} color="#007bff" />
-                    </TouchableOpacity>
-                    <TouchableOpacity onPress={() => handleDeleteQuery(item.id)}>
-                      <MaterialCommunityIcons style={styles.deleteBtn} name="delete" size={24} color="#dc3545" />
-                  </TouchableOpacity>
-                  </View>
+                <Text style={styles.submitButtonText}>
+                  {isEditing ? 'Update Query' : 'Submit Query'}
                 </Text>
-              </View>
-            ))
-          ) : (
-            <View style={{ width: 420 }}>
-               <Text style={styles.emptyText}>No query records found.</Text>
+              </>
+            )}
+          </TouchableOpacity>
+        </View>
+
+        {/* Queries List */}
+        <View style={styles.listSection}>
+          <View style={styles.listHeader}>
+            <Text style={styles.listTitle}>All Queries</Text>
+            <View style={styles.countBadge}>
+              <Text style={styles.countBadgeText}>{queries.length}</Text>
             </View>
+          </View>
+
+          {queries.length > 0 ? (
+            queries.map((item, index) => renderQueryCard(item, index))
+          ) : (
+            renderEmptyState()
           )}
         </View>
       </ScrollView>
-    </ScrollView>  
     </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  center: { flex: 1, justifyContent: 'center', alignItems: 'center' },
-  tableContainer: { borderTopWidth: 1, borderLeftWidth: 1, borderColor: '#eee', margin: 5 },
-  tableRow: { flexDirection: 'row', borderBottomWidth: 1, borderColor: '#eee', alignItems: 'center' },
-  tableHeader: { backgroundColor: '#f8f9fa', borderBottomWidth: 2, borderColor: '#ccc' },
-  headerText: { padding: 12, fontFamily: 'Poppins-SemiBold', fontSize: 13, color: '#333', borderRightWidth: 1, borderColor: '#eee', textAlign: 'center' },
-  tableCell: { padding: 12, fontFamily: 'Poppins-Regular', fontSize: 12, color: '#444', borderRightWidth: 1, borderColor: '#eee', textAlign: 'center' },
-  emptyText: { padding: 20, textAlign: 'center', color: '#999' },
-  container: { paddingHorizontal: 10, paddingVertical: 25, flexDirection: 'row', },
-  inputContainer: { borderWidth: 1, borderColor: '#D1D1D1', width: '80%', justifyContent: 'center', alignItems: 'center', borderTopLeftRadius: 25, borderBottomLeftRadius: 25 },
-  input: { fontFamily: 'Poppins-Regular', fontSize: 16 },
-  btn: { borderWidth: 1, borderColor: '#D1D1D1', justifyContent: 'center', alignItems: 'center', width: '20%', borderTopRightRadius: 25, borderBottomEndRadius: 25 },
-  pencilBtn: { borderWidth: 1, paddingHorizontal: 10, paddingVertical: 3, borderColor: '#D1D1D1', borderBottomLeftRadius: 15, borderTopLeftRadius: 15 },
-  deleteBtn: { borderWidth: 1, paddingHorizontal: 7, paddingVertical: 3, borderColor: '#D1D1D1', borderTopRightRadius: 15, borderBottomRightRadius: 15 },
+  safeArea: { flex: 1, backgroundColor: '#f5f7fa', },
+  scrollContent: { flexGrow: 1, paddingBottom: 20, },
+  center: { flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#f5f7fa', },
+  // Input Section
+  inputSection: { backgroundColor: '#fff', paddingHorizontal: 16, paddingVertical: 20, marginBottom: 12, borderBottomWidth: 1, borderBottomColor: '#e1e4e8', },
+  sectionTitle: { fontFamily: 'Poppins-SemiBold', fontSize: 18, color: '#333', marginBottom: 12, },
+  editModeBanner: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#fff3cd', borderColor: '#ffc107', borderWidth: 1, borderRadius: 8, paddingHorizontal: 12, paddingVertical: 8, marginBottom: 12, },
+  editModeText: { fontFamily: 'Poppins-Regular', fontSize: 13, color: '#856404', marginLeft: 8, flex: 1, },
+  cancelButton: { paddingHorizontal: 12, paddingVertical: 4, },
+  cancelButtonText: { fontFamily: 'Poppins-SemiBold', fontSize: 13, color: '#856404', },
+  inputContainer: { borderWidth: 1.5, borderColor: '#d1d5db', borderRadius: 12, padding: 12, backgroundColor: '#fff', marginBottom: 12, minHeight: 80, },
+  inputContainerEditing: { borderColor: '#007bff', backgroundColor: '#f0f8ff', },
+  input: { fontFamily: 'Poppins-Regular', fontSize: 15, color: '#333', flex: 1, },
+  submitButton: { backgroundColor: '#007bff', flexDirection: 'row', justifyContent: 'center', alignItems: 'center', paddingVertical: 14, borderRadius: 12, gap: 8, },
+  submitButtonDisabled: { backgroundColor: '#6c757d', },
+  submitButtonText: { fontFamily: 'Poppins-SemiBold', fontSize: 16, color: '#fff', },
+  // List Section
+  listSection: { paddingHorizontal: 16, },
+  listHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12, },
+  listTitle: { fontFamily: 'Poppins-SemiBold', fontSize: 18, color: '#333', },
+  countBadge: { backgroundColor: '#007bff', borderRadius: 12, paddingHorizontal: 10, paddingVertical: 4, },
+  countBadgeText: { fontFamily: 'Poppins-SemiBold', fontSize: 13, color: '#fff', },
+  // Card Styles
+  card: { backgroundColor: '#fff', borderRadius: 12, padding: 16, marginBottom: 12, borderWidth: 1, borderColor: '#e1e4e8', shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.05, shadowRadius: 4, elevation: 2, },
+  cardEditing: { borderColor: '#007bff', borderWidth: 2, backgroundColor: '#f0f8ff', },
+  cardHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12, },
+  cardBadge: { backgroundColor: '#e7f3ff', borderRadius: 6, paddingHorizontal: 10, paddingVertical: 4, },
+  cardBadgeText: { fontFamily: 'Poppins-SemiBold', fontSize: 12, color: '#007bff', },
+  cardDate: { fontFamily: 'Poppins-Regular', fontSize: 12, color: '#6c757d', },
+  cardQuery: { fontFamily: 'Poppins-Regular', fontSize: 15, color: '#333', lineHeight: 22, marginBottom: 12, },
+  cardActions: { flexDirection: 'row', gap: 8, marginTop: 8, paddingTop: 12, borderTopWidth: 1, borderTopColor: '#e1e4e8', },
+  editButton: { flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', backgroundColor: '#e7f3ff', borderRadius: 8, paddingVertical: 10, gap: 6, minHeight: 44, },
+  editButtonText: { fontFamily: 'Poppins-SemiBold', fontSize: 14, color: '#007bff', },
+  deleteButton: { flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', backgroundColor: '#ffe5e5', borderRadius: 8, paddingVertical: 10, gap: 6, minHeight: 44, },
+  deleteButtonText: { fontFamily: 'Poppins-SemiBold', fontSize: 14, color: '#dc3545', },
+  // Empty State
+  emptyStateContainer: { alignItems: 'center', justifyContent: 'center', paddingVertical: 60, },
+  emptyStateTitle: { fontFamily: 'Poppins-SemiBold', fontSize: 18, color: '#666', marginTop: 16, marginBottom: 8, },
+  emptyStateText: { fontFamily: 'Poppins-Regular', fontSize: 14, color: '#999', textAlign: 'center', },
 });
