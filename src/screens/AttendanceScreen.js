@@ -1,7 +1,7 @@
 // screens/AttendanceScreen.js
 
 import React, { useState, useEffect, useCallback } from 'react';
-import { View, Text, StyleSheet, FlatList, ScrollView, TouchableOpacity, ActivityIndicator } from 'react-native';
+import { View, Text, StyleSheet, FlatList, ScrollView, TouchableOpacity, TouchableNativeFeedback, ActivityIndicator, Dimensions, BackHandler, StatusBar, RefreshControl } from 'react-native';
 import Toast from 'react-native-toast-message';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
 
@@ -11,6 +11,7 @@ import AttendanceItem from '../components/AttendanceItem';
 import CameraModal from '../components/CameraModal';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
+const { width, height } = Dimensions.get('window');
 
 // Define the available date filters
 const TIME_FRAMES = [
@@ -18,7 +19,7 @@ const TIME_FRAMES = [
     { label: 'Last 7 Days', value: '7days' },
     { label: 'Last 30 Days', value: '30days' },
     { label: 'Last 365 Days', value: '365days' },
-    { label: 'Custom', value: '0' }
+    { label: 'Custom', value: 'custom' }
 ];
 
 export default function AttendanceScreen() {
@@ -31,23 +32,30 @@ export default function AttendanceScreen() {
     const [selectedTimeFrame, setSelectedTimeFrame] = useState('today'); 
     const [attendanceData, setAttendanceData] = useState([]); 
     const [isLoading, setIsLoading] = useState(false); 
+    const [refreshing, setRefreshing] = useState(false);
 
     // Modal states
     const [modalVisible, setModalVisible] = useState(false);
     const [currentAction, setCurrentAction] = useState('');
 
-    // --- Data Loading Logic ---
-    const loadAttendance = async (timeFrame) => {
-        setIsLoading(true);
-        // Clear data on load to show a fresh state/loader
-        setAttendanceData([]);
+    const navigation = useNavigation();
+
+    // Data Loading Logic
+    const loadAttendance = async (timeFrame, isRefreshing = false) => {
+        if (isRefreshing) {
+            setRefreshing(true);
+        } else {
+            setIsLoading(true);
+            // Clear data on load to show a fresh state/loader
+            setAttendanceData([]);
+        }
         
         try {
             const response = await fetchAttendanceRecords(timeFrame);
             
             if (response && Array.isArray(response.attendance)) {
 
-                // update counts hear leav + onTime + late
+                // update counts here: leave + onTime + late
                 setLateCount(response.lateCount);
                 setOnTimeCount(response.onTimeCount);
                 setLeaveCount(response.leaveCount);
@@ -67,8 +75,14 @@ export default function AttendanceScreen() {
             });
         } finally {
             setIsLoading(false);
+            setRefreshing(false);
         }
     };
+
+    // Pull to refresh handler
+    const onRefresh = useCallback(() => {
+        loadAttendance(selectedTimeFrame, true);
+    }, [selectedTimeFrame]);
 
     // Load data on component mount, filter change, and focus
     useFocusEffect(
@@ -77,271 +91,192 @@ export default function AttendanceScreen() {
         }, [selectedTimeFrame])
     );
 
+    // Handle Android hardware back button
+    useEffect(() => {
+        const backHandler = BackHandler.addEventListener('hardwareBackPress', () => {
+            if (modalVisible) {
+                setModalVisible(false);
+                return true; // Prevent default behavior
+            }
+            return false; // Let default behavior happen (go back)
+        });
+        return () => backHandler.remove();
+    }, [modalVisible]);
 
-    const navigation = useNavigation();
+    // Render action button with Android ripple effect
+    const renderActionButton = (label, action) => (
+        <View style={styles.actionBtnWrapper}>
+            <TouchableNativeFeedback
+                onPress={() => { 
+                    setCurrentAction(action); 
+                    setModalVisible(true); 
+                }}
+                background={TouchableNativeFeedback.Ripple('#00000020', false)}
+            >
+                <View style={styles.actionBtn}>
+                    <Text style={styles.actionButtonText} numberOfLines={1}>
+                        {label}
+                    </Text>
+                </View>
+            </TouchableNativeFeedback>
+        </View>
+    );
 
     return (
         <SafeAreaView style={styles.container}>
+            <StatusBar backgroundColor="#fff" barStyle="dark-content" />
+            
             <View style={styles.headerContainer}>
-                <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
-                    <Text style={styles.backButtonText}>← Back</Text>
-                </TouchableOpacity>
+                <TouchableNativeFeedback 
+                    onPress={() => navigation.goBack()}
+                    background={TouchableNativeFeedback.Ripple('#00000020', true)}
+                >
+                    <View style={styles.backButton}>
+                        <Text style={styles.backButtonText}>← Back</Text>
+                    </View>
+                </TouchableNativeFeedback>
                 <Text style={styles.header}>Attendance</Text>
             </View>
             
-            {/* Quick Actions */}
             {/* Time Frame Filters */}
-            <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.filtersContainer}>
+            <ScrollView 
+                horizontal 
+                showsHorizontalScrollIndicator={false} 
+                style={styles.filtersContainer}
+                contentContainerStyle={styles.filtersContentContainer}
+            >
                 {TIME_FRAMES.map(filter => (
-                    <TouchableOpacity
+                    <TouchableNativeFeedback
                         key={filter.value}
-                        style={[
-                            styles.filterButton,
-                            // Apply active styles when selected
-                            selectedTimeFrame === filter.value && styles.activeFilter,
-                        ]}
                         onPress={() => setSelectedTimeFrame(filter.value)}
-                        // Optionally disable filters while loading data
                         disabled={isLoading}
+                        background={TouchableNativeFeedback.Ripple('#00000020', true)}
                     >
-                        <Text style={[styles.filterText, selectedTimeFrame === filter.value && styles.activeFilterText]}>
-                            {filter.label}
-                        </Text>
-                    </TouchableOpacity>
+                        <View
+                            style={[
+                                styles.filterButton,
+                                selectedTimeFrame === filter.value && styles.activeFilter,
+                                isLoading && styles.disabledFilter
+                            ]}
+                        >
+                            <Text 
+                                style={[
+                                    styles.filterText, 
+                                    selectedTimeFrame === filter.value && styles.activeFilterText
+                                ]}
+                                numberOfLines={1}
+                            >
+                                {filter.label}
+                            </Text>
+                        </View>
+                    </TouchableNativeFeedback>
                 ))}
             </ScrollView>
 
             {/* Total Count Section */}
             <View style={styles.countContainer}>
                 <View style={styles.count}>
-                    <Text style={styles.countValue}>{onTimeCount}</Text>
-                    <Text style={styles.countValue}>On Time</Text>
+                    <Text style={styles.countValue} numberOfLines={1}>{onTimeCount}</Text>
+                    <Text style={styles.countLabel} numberOfLines={1}>On Time</Text>
                 </View>
-                <View style={{width: 1, backgroundColor: '#929292ff' , height: '50%'}} />
+                <View style={styles.divider} />
                 <View style={styles.count}>
-                    <Text style={styles.countValue}>{lateCount}</Text>
-                    <Text style={styles.countValue}>Late</Text>
+                    <Text style={styles.countValue} numberOfLines={1}>{lateCount}</Text>
+                    <Text style={styles.countLabel} numberOfLines={1}>Late</Text>
                 </View>
-                <View style={{width: 1, backgroundColor: '#929292ff' , height: '50%'}} />
+                <View style={styles.divider} />
                 <View style={styles.count}>
-                    <Text style={styles.countValue}>{leaveCount}</Text>
-                    <Text style={styles.countValue}>leave</Text>
+                    <Text style={styles.countValue} numberOfLines={1}>{leaveCount}</Text>
+                    <Text style={styles.countLabel} numberOfLines={1}>Leave</Text>
                 </View>
             </View>
 
-            {/* --- Attendance List: USE FLATLIST HERE --- */}
-        {isLoading ? (
-            <ActivityIndicator size="large" color="#007bff" style={{ margin: 20 }} />
-        ) : attendanceData.length > 0 ? (
-            <FlatList
-                data={attendanceData}
-                // renderItem replaces the map function
-                renderItem={({ item }) => <AttendanceItem record={item} />}
-                // keyExtractor is necessary for performance
-                keyExtractor={item => item.id.toString()} // Assuming 'id' is a unique identifier
-                contentContainerStyle={styles.listContentContainer}
-                style={styles.listContainer}
+            {/* Attendance List */}
+            {isLoading && !refreshing ? (
+                <View style={styles.loadingContainer}>
+                    <ActivityIndicator size="large" color="#007bff" />
+                </View>
+            ) : attendanceData.length > 0 ? (
+                <FlatList
+                    data={attendanceData}
+                    renderItem={({ item }) => <AttendanceItem record={item} />}
+                    keyExtractor={item => item.id.toString()}
+                    contentContainerStyle={styles.listContentContainer}
+                    style={styles.listContainer}
+                    refreshControl={
+                        <RefreshControl
+                            refreshing={refreshing}
+                            onRefresh={onRefresh}
+                            colors={['#007bff']}
+                        />
+                    }
+                />
+            ) : (
+                <View style={styles.emptyContainer}>
+                    <Text style={styles.noRecordsText}>
+                        No records found for the selected time frame.
+                    </Text>
+                </View>
+            )}
+
+            {/* Action Section */}
+            <View style={styles.actionsContainer}>
+                <View style={styles.actionRow}>
+                    {renderActionButton('Check In', 'Check In')}
+                    {renderActionButton('Break Start', 'Break Start')}
+                </View>
+                <View style={styles.actionRow}>
+                    {renderActionButton('Break End', 'Break End')}
+                    {renderActionButton('Check Out', 'Check Out')}
+                </View>
+            </View>
+
+            <CameraModal
+                visible={modalVisible}
+                actionType={currentAction}
+                onSuccess={() => {
+                    setSelectedTimeFrame('today');
+                    loadAttendance('today');
+                    setModalVisible(false);
+                }}
+                onClose={() => setModalVisible(false)}
             />
-        ) : (
-            // Empty state is rendered when data is empty and not loading
-            <View style={styles.listContainer}>
-                <Text style={styles.noRecordsText}>
-                    No records found for the selected time frame.
-                </Text>
-            </View>
-        )}
-
-        {/*   Action Section */}
-        <View style={styles.actionsContainer}>
-            <View style={{ flexDirection:'row', justifyContent: 'space-evenly'}}>
-                <View>
-                 <TouchableOpacity
-                    style={styles.actionBtn}
-                    onPress={() => { setCurrentAction('Check In'); setModalVisible(true); }}
-                    >
-                    <Text style={styles.actionButtonText}>Check In</Text>
-                    </TouchableOpacity>
-                </View>
-               <View>
-                    <TouchableOpacity
-                    style={styles.actionBtn}
-                    onPress={() => { setCurrentAction('Break Start'); setModalVisible(true); }}
-                    >
-                        <Text style={styles.actionButtonText}>Break Start</Text>
-                    </TouchableOpacity>
-                </View>
-            </View>
-            <View style={{ flexDirection:'row', justifyContent: 'space-evenly' }}>
-                <View>
-                    <TouchableOpacity
-                    style={styles.actionBtn}
-                    onPress={() => { setCurrentAction('Break End'); setModalVisible(true); }}
-                    >
-                        <Text style={styles.actionButtonText}>Break End</Text>
-                    </TouchableOpacity>
-                </View>
-                <View>
-                    <TouchableOpacity
-                    style={styles.actionBtn}
-                    onPress={() => { setCurrentAction('Check Out'); setModalVisible(true); }}
-                    >
-                        <Text style={styles.actionButtonText}>Check Out</Text>
-                    </TouchableOpacity>
-                </View>
-            </View>
-        </View>
-
-        <CameraModal
-            visible={modalVisible}
-            actionType={currentAction}
-            onSuccess={() => {
-                setSelectedTimeFrame('today');
-                loadAttendance('today');
-                setModalVisible(false);
-            }}
-            onClose={() => setModalVisible(false)}
-        />
-         
-        <Toast />
-    </SafeAreaView>
+             
+            <Toast />
+        </SafeAreaView>
     );
 }
 
 const styles = StyleSheet.create({
     container: { flex: 1, backgroundColor: '#fff' },
-    headerContainer: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        marginHorizontal: 15,
-        marginVertical: 10,
-        marginBottom: 10,
-    },
-    backButton: {
-        marginRight: 10,
-        padding: 5,
-    },
-    backButtonText: {
-        fontSize: 12,
-        color: '#007bff',
-        fontFamily: 'Poppins-SemiBold',
-        fontWeight: 'bold',
-    },
-    header: { 
-        fontSize: 20,
-        fontFamily: 'Poppins-SemiBold', 
-        marginHorizontal: 15, 
-        marginVertical: 10,
-        marginBottom: 10, 
-        color: '#333', 
-    },
-
+    headerContainer: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 15, paddingVertical: 10, },
+    backButton: { marginRight: 10, padding: 8, borderRadius: 8, },
+    backButtonText: { fontSize: 14, color: '#007bff', fontFamily: 'Poppins-SemiBold', },
+    header: { fontSize: 20, fontFamily: 'Poppins-SemiBold', color: '#333', flex: 1, },
     // Filters
-    filtersContainer: { 
-        paddingVertical: 6, 
-        marginBottom: 15,
-        maxHeight: 45,
-    },
-    filterButton: { 
-        paddingVertical: 6, // Increased padding
-        paddingHorizontal: 14,
-        borderRadius: 20,
-        marginEnd: 4,
-        marginStart: 4,
-        backgroundColor: '#fff', 
-        justifyContent: 'center', 
-        borderWidth: 1, // Kept for border consistency
-        borderColor: '#929292ff',
-    },
-    filterText: { 
-        color: '#444', // Darker gray for better contrast
-        fontSize: 12, 
-        fontFamily: 'Poppins-Regular',
-    },
-    activeFilter: { 
-        backgroundColor: '#b0ffccaa',
-        borderColor: '#929292ff',
-
-    },
-    activeFilterText: { 
-        color: '#000', 
-        fontFamily: 'Poppins-SemiBold', 
-        fontSize: 12,
-    },
-
+    filtersContainer: { maxHeight: 50, marginBottom: 15, },
+    filtersContentContainer: { paddingHorizontal: 12, alignItems: 'center', },
+    filterButton: { paddingVertical: 8, paddingHorizontal: 16, borderRadius: 20, marginHorizontal: 4, backgroundColor: '#fff', justifyContent: 'center', borderWidth: 1, borderColor: '#929292', elevation: 1, minHeight: 36, },
+    filterText: { color: '#444', fontSize: 13, fontFamily: 'Poppins-Regular', },
+    activeFilter: { backgroundColor: '#b0ffcc', borderColor: '#4caf50', elevation: 2, },
+    activeFilterText: { color: '#000', fontFamily: 'Poppins-SemiBold', },
+    disabledFilter: { opacity: 0.5,},
     // Count
-    countContainer:{
-        flex: 1,
-        maxHeight: 75,
-        backgroundColor: '#a3a3a329',
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        marginHorizontal: 10,
-        borderRadius: 25,
-        marginBottom: 15,
-    },
-
-    count:{
-        padding: 6,
-        height: 75,
-        width: 108,
-        justifyContent: 'center',
-        alignItems: 'center',
-        borderRadius:16,
-    },
-
-    countValue: {
-        fontFamily: 'Poppins-Regular',
-        fontSize: 12,
-    },
-    
+    countContainer: { height: height * 0.1, minHeight: 70, maxHeight: 90, backgroundColor: '#f5f5f5', flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginHorizontal: 15, borderRadius: 12, marginBottom: 15, elevation: 2, paddingVertical: 8, },
+    count: { flex: 1, justifyContent: 'center', alignItems: 'center', paddingHorizontal: 4, },
+    countValue: { fontFamily: 'Poppins-SemiBold', fontSize: 18, color: '#333', },
+    countLabel: { fontFamily: 'Poppins-Regular', fontSize: 12, color: '#666', marginTop: 2, },
+    divider: { width: 1, backgroundColor: '#d0d0d0', height: '60%', },
     // List
-    listContainer: {
-        backgroundColor: '#a3a3a329',
-        maxHeight: 425,
-        height: 150,
-        paddingHorizontal: 10, 
-        borderRadius: 25, 
-        marginHorizontal: 10, // Added margin for visual separation
-        marginBottom: 15,
-    },
-    listContentContainer: {
-        paddingVertical: 10,
-        // Added minHeight to ensure the scroll area is always visible
-        minHeight: 150, 
-    },
-    noRecordsText: { 
-        textAlign: 'center', 
-        margin: 20, 
-        color: '#6c757d',
-        fontFamily: 'Poppins-Regular', 
-        fontSize: 16,
-    },
-
-    // action btn
-    actionsContainer: {
-        backgroundColor: '#a3a3a329',
-        borderRadius: 25,
-        marginHorizontal: 10,
-        justifyContent: 'space-evenly',
-        marginBottom: 20,
-        height: 120,
-    },
-
-    actionBtn: { 
-        backgroundColor: '#ffffff',
-        padding: 10,
-        borderRadius: 25,
-        width: 150,
-        height: 45,
-        justifyContent: 'center',
-    
-    },
-
-    actionButtonText: { 
-        color: '#000', 
-        fontSize: 14, // Reduced font size for better fit
-        fontFamily: 'Poppins-Regular',
-        textAlign: 'center',
-    },
+    listContainer: { flex: 1, backgroundColor: '#f5f5f5', marginHorizontal: 15, borderRadius: 12, marginBottom: 15, elevation: 1, },
+    listContentContainer: { paddingVertical: 10, paddingHorizontal: 5, flexGrow: 1, },
+    loadingContainer: { flex: 1, backgroundColor: '#f5f5f5', marginHorizontal: 15, borderRadius: 12, marginBottom: 15, justifyContent: 'center', alignItems: 'center', elevation: 1, },
+    emptyContainer: { flex: 1, backgroundColor: '#f5f5f5', marginHorizontal: 15, borderRadius: 12, marginBottom: 15, justifyContent: 'center', alignItems: 'center', elevation: 1, },
+    noRecordsText: { textAlign: 'center', color: '#6c757d', fontFamily: 'Poppins-Regular', fontSize: 14, paddingHorizontal: 20, },
+    // Action buttons
+    actionsContainer: { backgroundColor: '#f5f5f5', borderRadius: 12, marginHorizontal: 15, marginBottom: 15, paddingVertical: 12, paddingHorizontal: 10, elevation: 2, },
+    actionRow: { flexDirection: 'row', justifyContent: 'space-between', marginVertical: 6, },
+    actionBtnWrapper: { flex: 1, marginHorizontal: 6, borderRadius: 20, overflow: 'hidden', elevation: 2, },
+    actionBtn: { backgroundColor: '#ffffff', paddingVertical: 12, paddingHorizontal: 16, borderRadius: 8, minHeight: 48, justifyContent: 'center', alignItems: 'center', },
+    actionButtonText: { color: '#000', fontSize: 14, fontFamily: 'Poppins-Medium', textAlign: 'center', },
 });
