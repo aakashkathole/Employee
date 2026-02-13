@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import {  StyleSheet, Text, View, ScrollView, RefreshControl, ActivityIndicator, Image, TouchableOpacity, Modal } from 'react-native'
+import { StyleSheet, Text, View, ScrollView, RefreshControl, ActivityIndicator, Image, TouchableOpacity } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import AppHeader from '../components/AppHeader';
@@ -17,7 +17,6 @@ export default function DashboardScreen({ navigation }) {
   const [loading, setLoading] = useState(true);
   const [dashboardData, setDashboardData] = useState(null);
   const [error, setError] = useState("");
-
   const [refreshing, setRefreshing] = useState(false);
 
   const handleMenuPress = () => { 
@@ -28,7 +27,6 @@ export default function DashboardScreen({ navigation }) {
     try {
       setError("");
       setLoading(true);
-
       const data = await getDashboardData();
       setDashboardData(data);
     } catch (err) {
@@ -49,8 +47,6 @@ export default function DashboardScreen({ navigation }) {
     loadDashboard();
   };
 
-
-
   if (error) {
     return (
       <View style={styles.errorContainer}>
@@ -62,247 +58,202 @@ export default function DashboardScreen({ navigation }) {
   const emp = dashboardData?.employee;
   const doc = dashboardData?.document;
 
-    return (
-    <SafeAreaView style= {styles.container}>
-      <AppHeader onMenuPress={handleMenuPress}
-      onProfilePress={() => navigation.navigate('Profile')} />
+  return (
+    <SafeAreaView style={styles.container}>
+      <AppHeader onMenuPress={handleMenuPress} onProfilePress={() => navigation.navigate('Profile')} />
 
       {loading ? (
-    <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
-      <ActivityIndicator size="large" />
-      <Text style={{fontFamily: 'Poppins-Regular'}}>Loading Dashboard...</Text>
-    </View>
-  ) : error ? (
-    <View style={styles.errorContainer}>
-      <Text style={styles.errorText}>{error}</Text>
-    </View>
-  ) : (
-  <ScrollView
-  style={{backgroundColor:'#ffffff'}}
-  refreshControl={
-  <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
-}
->
-  <View style={styles.employeeInfo}>
-  {/* Header Section with Photo and Welcome */}
-  <View style={styles.empInfoMini}>
-    <Image
-      source={{ uri: doc?.employeePhoto }}
-      style={styles.employeeImg}
-    />
-    <View style={styles.welcomeTextContainer}>
-      <Text style={styles.welcomeText}>Welcome,</Text>
-      <Text style={styles.employeeName}>{emp?.fullName}</Text>
-      <Text style={styles.designation}>{emp?.designation}</Text>
-    </View>
-  </View>
+        <View style={styles.centerContainer}>
+          <ActivityIndicator size="large" />
+          <Text style={styles.loadingText}>Loading Dashboard...</Text>
+        </View>
+      ) : error ? (
+        <View style={styles.errorContainer}>
+          <Text style={styles.errorText}>{error}</Text>
+        </View>
+      ) : (
+        <ScrollView
+          style={styles.scrollView}
+          refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
+          showsVerticalScrollIndicator={false}
+        >
+          {/* Header Section */}
+          <View style={styles.header}>
+            <Image source={{ uri: doc?.employeePhoto }} style={styles.avatar} />
+            <View style={styles.headerInfo}>
+              <Text style={styles.welcomeText}>Welcome,</Text>
+              <Text style={styles.name}>{emp?.fullName}</Text>
+              <Text style={styles.designation}>{emp?.designation}</Text>
+            </View>
+          </View>
 
-  {/* Divider */}
-  <View style={styles.sectionDivider} />
+          {/* Employee Details Grid */}
+          <View style={styles.detailsContainer}>
+            <View style={styles.detailRow}>
+              <View style={styles.detailItem}>
+                <View style={styles.iconBox}>
+                  <MaterialCommunityIcons name="badge-account-outline" size={18} color="#000080" />
+                </View>
+                <View style={styles.detailContent}>
+                  <Text style={styles.detailLabel}>Employee ID</Text>
+                  <Text style={styles.detailValue}>{emp?.id}</Text>
+                </View>
+              </View>
 
-  {/* Info Cards */}
-  <View style={styles.infoCard}>
-    <View style={styles.iconContainer}>
-      <MaterialCommunityIcons name="badge-account-outline" size={22} color="#000080" />
-    </View>
-    <View style={styles.infoContent}>
-      <Text style={styles.empInfo}>Employee ID</Text>
-      <Text style={styles.apiInfo}>{emp?.id}</Text>
-    </View>
-  </View>
+              <View style={styles.detailItem}>
+                <View style={styles.iconBox}>
+                  <MaterialCommunityIcons name="phone-outline" size={18} color="#000080" />
+                </View>
+                <View style={styles.detailContent}>
+                  <Text style={styles.detailLabel}>Mobile</Text>
+                  <Text style={styles.detailValue}>{emp?.mobileNo}</Text>
+                </View>
+              </View>
+            </View>
 
-  <View style={styles.infoCard}>
-    <View style={styles.iconContainer}>
-      <MaterialCommunityIcons name="phone-outline" size={22} color="#000080" />
-    </View>
-    <View style={styles.infoContent}>
-      <Text style={styles.empInfo}>Mobile</Text>
-      <Text style={styles.apiInfo}>{emp?.mobileNo}</Text>
-    </View>
-  </View>
+            <View style={styles.detailRow}>
+              <View style={styles.detailItem}>
+                <View style={styles.iconBox}>
+                  <MaterialCommunityIcons name="account-outline" size={18} color="#000080" />
+                </View>
+                <View style={styles.detailContent}>
+                  <Text style={styles.detailLabel}>Category</Text>
+                  <Text style={styles.detailValue}>{emp?.categoryName}</Text>
+                </View>
+              </View>
 
-  <View style={styles.infoCard}>
-    <View style={styles.iconContainer}>
-      <MaterialCommunityIcons name="account-outline" size={22} color="#000080" />
-    </View>
-    <View style={styles.infoContent}>
-      <Text style={styles.empInfo}>Category</Text>
-      <Text style={styles.apiInfo}>{emp?.categoryName}</Text>
-    </View>
-  </View>
+              <View style={styles.detailItem}>
+                <View style={styles.iconBox}>
+                  <MaterialCommunityIcons name="briefcase-account-outline" size={18} color="#000080" />
+                </View>
+                <View style={styles.detailContent}>
+                  <Text style={styles.detailLabel}>Work Location</Text>
+                  <Text style={styles.detailValue}>{emp?.workLocation}</Text>
+                </View>
+              </View>
+            </View>
 
-  <View style={styles.infoCard}>
-    <View style={styles.iconContainer}>
-      <MaterialCommunityIcons name="briefcase-account-outline" size={22} color="#000080" />
-    </View>
-    <View style={styles.infoContent}>
-      <Text style={styles.empInfo}>Work Location</Text>
-      <Text style={styles.apiInfo}>{emp?.workLocation}</Text>
-    </View>
-  </View>
+            <View style={styles.detailRow}>
+              <View style={styles.detailItem}>
+                <View style={styles.iconBox}>
+                  <MaterialCommunityIcons name="calendar-clock-outline" size={18} color="#000080" />
+                </View>
+                <View style={styles.detailContent}>
+                  <Text style={styles.detailLabel}>Shift</Text>
+                  <Text style={styles.detailValue}>{emp?.shift} ({emp?.shiftStartTime}-{emp?.shiftEndTime})</Text>
+                </View>
+              </View>
 
-  <View style={styles.infoCard}>
-    <View style={styles.iconContainer}>
-      <MaterialCommunityIcons name="calendar-clock-outline" size={22} color="#000080" />
-    </View>
-    <View style={styles.infoContent}>
-      <Text style={styles.empInfo}>Shift</Text>
-      <Text style={styles.apiInfo}>
-        {emp?.shift} ({emp?.shiftStartTime} - {emp?.shiftEndTime})
-      </Text>
-    </View>
-  </View>
+              <View style={styles.detailItem}>
+                <View style={styles.iconBox}>
+                  <MaterialCommunityIcons name="check-circle-outline" size={18} color="#000080" />
+                </View>
+                <View style={styles.detailContent}>
+                  <Text style={styles.detailLabel}>Status</Text>
+                  <Text style={styles.detailValue}>{emp?.status}</Text>
+                </View>
+              </View>
+            </View>
+          </View>
 
-  <View style={[styles.infoCard, styles.lastCard]}>
-    <View style={styles.iconContainer}>
-      <MaterialCommunityIcons name="check-circle-outline" size={22} color="#000080" />
-    </View>
-    <View style={styles.infoContent}>
-      <Text style={styles.empInfo}>Status</Text>
-      <Text style={styles.apiInfo}>{emp?.status}</Text>
-    </View>
-  </View>
-</View>
+          {/* Info Grid - 2x2 */}
+          <View style={styles.infoGrid}>
+            <View style={[styles.infoCard, { backgroundColor: '#1e90ff' }]}>
+              <MaterialCommunityIcons name="checkbox-multiple-marked-circle-outline" size={22} color="#fff" />
+              <Text style={styles.infoLabel}>Currently</Text>
+              <Text style={styles.infoValue}>{emp?.employeeType}</Text>
+            </View>
+            <View style={[styles.infoCard, { backgroundColor: '#f08080' }]}>
+              <MaterialCommunityIcons name="domain" size={22} color="#fff" />
+              <Text style={styles.infoLabel}>Department</Text>
+              <Text style={styles.infoValue}>{emp?.department}</Text>
+            </View>
+            <View style={[styles.infoCard, { backgroundColor: '#3cb371' }]}>
+              <MaterialCommunityIcons name="account-tie" size={22} color="#fff" />
+              <Text style={styles.infoLabel}>Designation</Text>
+              <Text style={styles.infoValue}>{emp?.designation}</Text>
+            </View>
+            <View style={[styles.infoCard, { backgroundColor: '#FFD700' }]}>
+              <MaterialCommunityIcons name="card-account-details-star-outline" size={22} color="#fff" />
+              <Text style={styles.infoLabel}>Category</Text>
+              <Text style={styles.infoValue}>{emp?.categoryName}</Text>
+            </View>
+          </View>
 
-<View style={styles.spacer} />
+          {/* Compact Action Cards */}
+          <TouchableOpacity style={styles.actionCard} onPress={() => setAttendanceVisible(true)}>
+            <View style={[styles.actionIcon, { backgroundColor: '#E3F2FD' }]}>
+              <MaterialCommunityIcons name="chart-bar-stacked" size={24} color='#1e90ff' />
+            </View>
+            <Text style={styles.actionText}>Monthly Attendance</Text>
+            <MaterialCommunityIcons name="chevron-right" size={22} color='#666' />
+          </TouchableOpacity>
 
-{/* Quick info cards */}
-<View style={styles.cardView}>
-  <View style={styles.currentStatus}>
-    <View style={styles.cardTitleRow}>
-      <Text style={styles.cardTitle}>Currently</Text>
-      <MaterialCommunityIcons name="checkbox-multiple-marked-circle-outline" size={26} color="#fff" />
-    </View>
-    <View style={styles.horizontalLine} />
-    <Text style={styles.cardInfo}>{emp?.employeeType}</Text>
-  </View>
+          <TouchableOpacity style={styles.actionCard} onPress={() => setSalaryVisible(true)}>
+            <View style={[styles.actionIcon, { backgroundColor: '#E8F5E9' }]}>
+              <MaterialCommunityIcons name="trending-up" size={24} color='#3cb371' />
+            </View>
+            <Text style={styles.actionText}>Yearly Salary</Text>
+            <MaterialCommunityIcons name="chevron-right" size={22} color='#666' />
+          </TouchableOpacity>
 
-  <View style={styles.department}>
-    <View style={styles.cardTitleRow}>
-      <Text style={styles.cardTitle}>Department</Text>
-      <MaterialCommunityIcons name="domain" size={26} color="#fff" />
-    </View>
-    <View style={styles.horizontalLine} />
-    <Text style={styles.cardInfo}>{emp?.department}</Text>
-  </View>
-</View>
+          <TouchableOpacity style={styles.actionCard} onPress={() => setLeaveVisible(true)}>
+            <View style={[styles.actionIcon, { backgroundColor: '#FFFDE7' }]}>
+              <MaterialCommunityIcons name="calendar-text-outline" size={24} color='#FFD700' />
+            </View>
+            <Text style={styles.actionText}>Yearly Leave Report</Text>
+            <MaterialCommunityIcons name="chevron-right" size={22} color='#666' />
+          </TouchableOpacity>
 
-<View style={styles.spacer} />
+          {/* Footer */}
+          <View style={styles.footer}>
+            <Text style={styles.footerText}>Software Designed By PJSOFTTECH Pvt. Ltd.</Text>
+            <Text style={styles.footerCopyright}>© All Rights Reserved</Text>
+          </View>
+        </ScrollView>
+      )}
 
-<View style={styles.cardView}>
-  <View style={styles.dDesignation}>
-    <View style={styles.cardTitleRow}>
-      <Text style={styles.cardTitle}>Designation</Text>
-      <MaterialCommunityIcons name="account-tie" size={26} color="#fff" />
-    </View>
-    <View style={styles.horizontalLine} />
-    <Text style={styles.cardInfo}>{emp?.designation}</Text>
-  </View>
-
-  <View style={styles.Category}>
-    <View style={styles.cardTitleRow}>
-      <Text style={styles.cardTitle}>Category</Text>
-      <MaterialCommunityIcons name="card-account-details-star-outline" size={26} color="#fff" />
-    </View>
-    <View style={styles.horizontalLine} />
-    <Text style={styles.cardInfo}>{emp?.categoryName}</Text>
-  </View>
-</View>
-
-<View style={styles.spacer} />
-
-{/* Action Cards */}
-<TouchableOpacity style={styles.actionCard} onPress={() => setAttendanceVisible(true)}>
-  <View style={styles.contentHeader}>
-    <View style={[styles.actionIconContainer, { backgroundColor: '#E3F2FD' }]}>
-      <MaterialCommunityIcons name="chart-bar-stacked" size={28} color='#1e90ff' />
-    </View>
-    <Text style={styles.contenHeaderLabel}>Monthly Attendance</Text>
-  </View>
-  <View style={styles.btnLabel}>
-    <Text style={styles.btnlabelTxt}>View Monthly Attendance</Text>
-    <MaterialCommunityIcons name="chevron-right" size={26} color='#fff' />
-  </View>
-</TouchableOpacity>
-
-<View style={styles.spacer} />
-
-<TouchableOpacity style={styles.actionCard} onPress={() => setSalaryVisible(true)}>
-  <View style={styles.contentHeader}>
-    <View style={[styles.actionIconContainer, { backgroundColor: '#E8F5E9' }]}>
-      <MaterialCommunityIcons name="trending-up" size={28} color='#3cb371' />
-    </View>
-    <Text style={styles.contenHeaderLabel}>Yearly Salary</Text>
-  </View>
-  <View style={styles.btnLabel}>
-    <Text style={styles.btnlabelTxt}>View Yearly Salary</Text>
-    <MaterialCommunityIcons name="chevron-right" size={26} color='#fff' />
-  </View>
-</TouchableOpacity>
-
-<View style={styles.spacer} />
-
-<TouchableOpacity style={styles.actionCard} onPress={() => setLeaveVisible(true)}>
-  <View style={styles.contentHeader}>
-    <View style={[styles.actionIconContainer, { backgroundColor: '#FFFDE7' }]}>
-      <MaterialCommunityIcons name="calendar-text-outline" size={28} color='#FFD700' />
-    </View>
-    <Text style={styles.contenHeaderLabel}>Yearly Leave Report</Text>
-  </View>
-  <View style={styles.btnLabel}>
-    <Text style={styles.btnlabelTxt}>View Yearly Leave Report</Text>
-    <MaterialCommunityIcons name="chevron-right" size={26} color='#fff' />
-  </View>
-</TouchableOpacity>
-
-{/* Footer */}
-<View style={styles.footer}>
-  <Text style={styles.footerText}>Software Designed By PJSOFTTECH Pvt. Ltd.</Text>
-  <Text style={styles.footerCopyright}>© All Rights Reserved</Text>
-</View>
-</ScrollView>
-  )}
-  {/* Modals */}
-    <MonthlyAttendanceModal visible={attendanceVisible} onClose={() => setAttendanceVisible(false)} />
-    <YearlySalaryModal visible={salaryVisible} onClose={() => setSalaryVisible(false)} />
-    <YearlyLeaveModal visible={leaveVisible} onClose={() => setLeaveVisible(false)} />
+      {/* Modals */}
+      <MonthlyAttendanceModal visible={attendanceVisible} onClose={() => setAttendanceVisible(false)} />
+      <YearlySalaryModal visible={salaryVisible} onClose={() => setSalaryVisible(false)} />
+      <YearlyLeaveModal visible={leaveVisible} onClose={() => setLeaveVisible(false)} />
     </SafeAreaView>
   )
 }
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#F5F7FA' },
-  spacer: { height: 15 },
-  employeeInfo: { width: '100%', backgroundColor: '#fff', borderRadius: 16, padding: 16, elevation: 3, shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.1, shadowRadius: 8, borderWidth: 0.5 },
-  empInfoMini: { flexDirection: 'row', alignItems: 'center', paddingVertical: 12, paddingHorizontal: 8, borderBottomWidth: 1, borderRightWidth: 2.5, borderRadius: 25, borderColor: '#ffa500' },
-  employeeImg: { width: 70, height: 70, borderRadius: 35, borderWidth: 1, borderColor: '#ffa500' },
-  welcomeTextContainer: { flex: 1, marginLeft: 16 },
+  scrollView: { backgroundColor: '#ffffff' },
+  centerContainer: { flex: 1, justifyContent: 'center', alignItems: 'center' },
+  loadingText: { fontFamily: 'Poppins-Regular', marginTop: 8 },
+  errorContainer: { flex: 1, justifyContent: 'center', alignItems: 'center', padding: 20 },
+  errorText: { fontFamily: 'Poppins-Regular', color: '#ff0000' },
+  // Header Section
+  header: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#fff', padding: 16, marginBottom: 10, borderBottomWidth: 2, borderRightWidth: 2.5, borderRadius: 20, marginHorizontal: 8, marginTop: 8, borderColor: '#ffa500', elevation: 2, shadowColor: '#000', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.1, shadowRadius: 3, },
+  avatar: { width: 70, height: 70, borderRadius: 35, borderWidth: 1, borderColor: '#ffa500', },
+  headerInfo: { flex: 1, marginLeft: 14 },
   welcomeText: { fontSize: 13, fontFamily: 'Poppins-Regular', color: '#666' },
-  employeeName: { fontSize: 18, fontFamily: 'Poppins-Bold', color: '#000', marginTop: -2 },
+  name: { fontSize: 17, fontFamily: 'Poppins-Bold', color: '#000', marginTop: -2 },
   designation: { fontSize: 13, fontFamily: 'Poppins-Medium', color: '#000080', marginTop: -2 },
-  sectionDivider: { height: 1, backgroundColor: '#E8E8E8', marginVertical: 16 },
-  infoCard: { flexDirection: 'row', alignItems: 'center', paddingVertical: 12, paddingHorizontal: 4, borderBottomWidth: 1, borderBottomColor: '#F5F5F5' },
-  lastCard: { borderBottomWidth: 0 },
-  iconContainer: { width: 40, height: 40, borderRadius: 20, backgroundColor: '#EEF2FF', justifyContent: 'center', alignItems: 'center' },
-  infoContent: { flex: 1, marginLeft: 12 },
-  empInfo: { fontSize: 12, fontFamily: 'Poppins-Medium', color: '#888', marginBottom: 2 },
-  apiInfo: { fontSize: 15, fontFamily: 'Poppins-SemiBold', color: '#000' },
-  cardView: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
-  cardTitleRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 },
-  cardTitle: { fontSize: 15, fontFamily: 'Poppins-SemiBold', color: '#fff' },
-  horizontalLine: { height: 1, backgroundColor: 'rgba(255, 255, 255, 0.3)', marginVertical: 8 },
-  cardInfo: { fontSize: 14, fontFamily: 'Poppins-Medium', color: '#fff', marginTop: 4 },
-  currentStatus: { width: '48.5%', borderRadius: 16, padding: 16, backgroundColor: '#1e90ff', elevation: 2, shadowColor: '#1e90ff', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.2, shadowRadius: 4 },
-  department: { width: '48.5%', padding: 16, borderRadius: 16, backgroundColor: '#f08080', elevation: 2, shadowColor: '#f08080', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.2, shadowRadius: 4 },
-  dDesignation: { width: '48.5%', borderRadius: 16, padding: 16, backgroundColor: '#3cb371', elevation: 2, shadowColor: '#3cb371', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.2, shadowRadius: 4 },
-  Category: { width: '48.5%', borderRadius: 16, padding: 16, backgroundColor: '#FFD700', elevation: 2, shadowColor: '#FFD700', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.2, shadowRadius: 4 },
-  actionCard: { backgroundColor: '#fff', padding: 16, borderRadius: 16, elevation: 2, shadowColor: '#000', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.1, shadowRadius: 4, borderWidth:0.5 },
-  contentHeader: { flexDirection: 'row', alignItems: 'center' },
-  actionIconContainer: { width: 48, height: 48, borderRadius: 24, justifyContent: 'center', alignItems: 'center' },
-  contenHeaderLabel: { fontFamily: 'Poppins-SemiBold', fontSize: 16, color: '#000', marginLeft: 12, flex: 1 },
-  btnLabel: { marginTop: 16, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingVertical: 12, paddingHorizontal: 16, borderRadius: 12, backgroundColor: '#0B5D69' },
-  btnlabelTxt: { color: '#fff', fontSize: 15, fontFamily: 'Poppins-Medium' },
-  footer: { alignItems: 'center', paddingVertical: 20, marginTop: 10 },
-  footerText: { fontSize: 12, fontFamily: 'Poppins-Regular', color: '#666', textAlign: 'center' },
-  footerCopyright: { fontSize: 11, fontFamily: 'Poppins-Regular', color: '#999', marginTop: 4 },
+  // Employee Details Grid
+  detailsContainer: { backgroundColor: '#fff', marginHorizontal: 8, marginBottom: 10, borderRadius: 12, padding: 12, elevation: 2, shadowColor: '#000', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.1, shadowRadius: 3, },
+  detailRow: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 10, },
+  detailItem: { flexDirection: 'row', alignItems: 'center', width: '48%', backgroundColor: '#f8f9fa', padding: 10, borderRadius: 10, },
+  iconBox: { width: 36, height: 36, borderRadius: 18, backgroundColor: '#EEF2FF', justifyContent: 'center', alignItems: 'center', },
+  detailContent: { flex: 1, marginLeft: 10 },
+  detailLabel: { fontSize: 10, fontFamily: 'Poppins-Medium', color: '#888' },
+  detailValue: { fontSize: 12, fontFamily: 'Poppins-SemiBold', color: '#000', marginTop: 1 },
+  // Info Grid
+  infoGrid: { flexDirection: 'row', flexWrap: 'wrap', paddingHorizontal: 8, marginBottom: 10, gap: 8, },
+  infoCard: { width: '48%', padding: 14, borderRadius: 12, elevation: 2, shadowColor: '#000', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.15, shadowRadius: 3, },
+  infoLabel: { fontSize: 11, fontFamily: 'Poppins-Medium', color: 'rgba(255,255,255,0.85)', marginTop: 6, },
+  infoValue: { fontSize: 14, fontFamily: 'Poppins-SemiBold', color: '#fff', marginTop: 2, },
+  // Action Cards
+  actionCard: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#fff', marginHorizontal: 8, marginBottom: 8, padding: 14, borderRadius: 12, elevation: 2, shadowColor: '#000', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.08, shadowRadius: 3, borderWidth: 0.5, borderColor: '#f0f0f0', },
+  actionIcon: { width: 42, height: 42, borderRadius: 21, justifyContent: 'center', alignItems: 'center', },
+  actionText: { flex: 1, fontFamily: 'Poppins-Medium', fontSize: 14, color: '#333', marginLeft: 12, },
+  // Footer
+  footer: { alignItems: 'center', paddingVertical: 16, marginTop: 4, },
+  footerText: { fontSize: 11, fontFamily: 'Poppins-Regular', color: '#666', },
+  footerCopyright: { fontSize: 10, fontFamily: 'Poppins-Regular', color: '#999', marginTop: 3, },
 });
