@@ -17,8 +17,8 @@ const { width, height } = Dimensions.get('window');
 const TIME_FRAMES = [
     { label: 'Today', value: 'today' },
     { label: 'Last 7 Days', value: '7days' },
-    { label: 'Last 30 Days', value: '30days' },
-    { label: 'Last 365 Days', value: '365days' },
+    { label: '30 Days', value: '30days' },
+    { label: '365 Days', value: '365days' },
     { label: 'Custom', value: 'custom' }
 ];
 
@@ -212,11 +212,21 @@ export default function AttendanceScreen() {
                     }
                 />
             ) : (
-                <View style={styles.emptyContainer}>
+                <ScrollView
+                    style={styles.listContainer}
+                    contentContainerStyle={styles.emptyContainer}
+                    refreshControl={
+                        <RefreshControl
+                            refreshing={refreshing}
+                            onRefresh={onRefresh}
+                            colors={['#007bff']}
+                        />   
+                    }
+                >
                     <Text style={styles.noRecordsText}>
                         No records found for the selected time frame.
                     </Text>
-                </View>
+                </ScrollView>
             )}
 
             {/* Action Section */}
@@ -254,12 +264,12 @@ const styles = StyleSheet.create({
     backButtonText: { fontSize: 14, color: '#007bff', fontFamily: 'Poppins-SemiBold', },
     header: { fontSize: 20, fontFamily: 'Poppins-SemiBold', color: '#333', flex: 1, },
     // Filters
-    filtersContainer: { maxHeight: 50, marginBottom: 15, },
-    filtersContentContainer: { paddingHorizontal: 12, alignItems: 'center', },
-    filterButton: { paddingVertical: 8, paddingHorizontal: 16, borderRadius: 20, marginHorizontal: 4, backgroundColor: '#fff', justifyContent: 'center', borderWidth: 1, borderColor: '#929292', elevation: 1, minHeight: 36, },
-    filterText: { color: '#444', fontSize: 13, fontFamily: 'Poppins-Regular', },
-    activeFilter: { backgroundColor: '#b0ffcc', borderColor: '#4caf50', elevation: 2, },
-    activeFilterText: { color: '#000', fontFamily: 'Poppins-SemiBold', },
+    filtersContainer: { maxHeight: 36, marginBottom: 15, },
+    filtersContentContainer: { paddingHorizontal: 8, alignItems: 'center', },
+    filterButton: { paddingVertical: 4, paddingHorizontal: 12, borderRadius: 16, marginRight: 6, backgroundColor: '#f5f5f5', justifyContent: 'center', borderWidth: 1, borderColor: '#929292', minHeight: 28, },
+    filterText: { color: '#666', fontSize: 12, fontFamily: 'Poppins-Regular', },
+    activeFilter: { backgroundColor: '#e3f2fd', borderColor: '#007bff', },
+    activeFilterText: { color: '#00jbff', fontFamily: 'Poppins-SemiBold', },
     disabledFilter: { opacity: 0.5,},
     // Count
     countContainer: { height: height * 0.1, minHeight: 70, maxHeight: 90, backgroundColor: '#f5f5f5', flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginHorizontal: 15, borderRadius: 12, marginBottom: 15, elevation: 2, paddingVertical: 8, },
@@ -275,8 +285,8 @@ const styles = StyleSheet.create({
     noRecordsText: { textAlign: 'center', color: '#6c757d', fontFamily: 'Poppins-Regular', fontSize: 14, paddingHorizontal: 20, },
     // Action buttons
     actionsContainer: { backgroundColor: '#f5f5f5', borderRadius: 12, marginHorizontal: 15, marginBottom: 15, paddingVertical: 12, paddingHorizontal: 10, elevation: 2, },
-    actionRow: { flexDirection: 'row', justifyContent: 'space-between', marginVertical: 6, },
-    actionBtnWrapper: { flex: 1, marginHorizontal: 6, borderRadius: 20, overflow: 'hidden', elevation: 2, },
-    actionBtn: { backgroundColor: '#ffffff', paddingVertical: 12, paddingHorizontal: 16, borderRadius: 8, minHeight: 48, justifyContent: 'center', alignItems: 'center', },
-    actionButtonText: { color: '#000', fontSize: 14, fontFamily: 'Poppins-Medium', textAlign: 'center', },
+    actionRow: { flexDirection: 'row', justifyContent: 'space-between', marginVertical: 4, },
+    actionBtnWrapper: { flex: 1, marginHorizontal: 4, borderRadius: 8, overflow: 'hidden',},
+    actionBtn: { backgroundColor: '#ffffff', paddingVertical: 8, paddingHorizontal: 8, borderRadius: 8, minHeight: 38, justifyContent: 'center', alignItems: 'center', elevation: 1, borderWidth: 1, borderColor: "#e8e8e8"},
+    actionButtonText: { color: '#333', fontSize: 12, fontFamily: 'Poppins-Medium', textAlign: 'center', },
 });
