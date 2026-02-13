@@ -159,23 +159,31 @@ export default function DashboardScreen({ navigation }) {
           {/* Info Grid - 2x2 */}
           <View style={styles.infoGrid}>
             <View style={[styles.infoCard, { backgroundColor: '#1e90ff' }]}>
-              <MaterialCommunityIcons name="checkbox-multiple-marked-circle-outline" size={22} color="#fff" />
-              <Text style={styles.infoLabel}>Currently</Text>
+              <View style={styles.labelContainer}>
+                <MaterialCommunityIcons name="checkbox-multiple-marked-circle-outline" size={20} color="#fff" />
+                <Text style={styles.infoLabel}>Employee type</Text>
+              </View>
               <Text style={styles.infoValue}>{emp?.employeeType}</Text>
             </View>
             <View style={[styles.infoCard, { backgroundColor: '#f08080' }]}>
-              <MaterialCommunityIcons name="domain" size={22} color="#fff" />
-              <Text style={styles.infoLabel}>Department</Text>
+              <View style={styles.labelContainer}>
+                <MaterialCommunityIcons name="domain" size={20} color="#fff" />
+                <Text style={styles.infoLabel}>Department</Text>
+              </View>
               <Text style={styles.infoValue}>{emp?.department}</Text>
             </View>
             <View style={[styles.infoCard, { backgroundColor: '#3cb371' }]}>
-              <MaterialCommunityIcons name="account-tie" size={22} color="#fff" />
-              <Text style={styles.infoLabel}>Designation</Text>
+              <View style={styles.labelContainer}>
+                <MaterialCommunityIcons name="account-tie" size={20} color="#fff" />
+                <Text style={styles.infoLabel}>Designation</Text>
+              </View>
               <Text style={styles.infoValue}>{emp?.designation}</Text>
             </View>
             <View style={[styles.infoCard, { backgroundColor: '#FFD700' }]}>
-              <MaterialCommunityIcons name="card-account-details-star-outline" size={22} color="#fff" />
-              <Text style={styles.infoLabel}>Category</Text>
+              <View style={styles.labelContainer}>
+                <MaterialCommunityIcons name="card-account-details-star-outline" size={20} color="#fff" />
+                <Text style={styles.infoLabel}>Category</Text>
+              </View>
               <Text style={styles.infoValue}>{emp?.categoryName}</Text>
             </View>
           </View>
@@ -246,7 +254,8 @@ const styles = StyleSheet.create({
   // Info Grid
   infoGrid: { flexDirection: 'row', flexWrap: 'wrap', paddingHorizontal: 8, marginBottom: 10, gap: 8, },
   infoCard: { width: '48%', padding: 14, borderRadius: 12, elevation: 2, shadowColor: '#000', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.15, shadowRadius: 3, },
-  infoLabel: { fontSize: 11, fontFamily: 'Poppins-Medium', color: 'rgba(255,255,255,0.85)', marginTop: 6, },
+  labelContainer: { flexDirection: 'row', alignItems: 'center', },
+  infoLabel: { fontSize: 11, fontFamily: 'Poppins-Medium', color: 'rgba(255,255,255,0.85)', marginLeft: 6},
   infoValue: { fontSize: 14, fontFamily: 'Poppins-SemiBold', color: '#fff', marginTop: 2, },
   // Action Cards
   actionCard: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#fff', marginHorizontal: 8, marginBottom: 8, padding: 14, borderRadius: 12, elevation: 2, shadowColor: '#000', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.08, shadowRadius: 3, borderWidth: 0.5, borderColor: '#f0f0f0', },
