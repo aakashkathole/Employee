@@ -59,19 +59,23 @@ export default function LeaveSummaryScreen() {
   };
 
   // Filter leaves
-  const filteredLeaves = filterStatus === 'all' 
+  const filteredLeaves = (filterStatus === 'all' 
     ? leaves 
-    : leaves.filter(leave => leave.status?.toLowerCase() === filterStatus);
+    : leaves.filter(leave => leave.status?.toLowerCase() === filterStatus))
+    .sort((a, b) => {
+      // sort most recent first
+      const dateA = new Date(a.leaveRequestDate);
+      const dateB = new Date(b.leaveRequestDate);
+      return dateB - dateA; // descending order
+    });
 
   // Loading State with Skeleton
   if (loading) {
     return (
       <SafeAreaView style={styles.safeArea}>
         <View style={styles.loaderContainer}>
-          <View style={styles.loaderCircle}>
-            <ActivityIndicator size="large" color="#0B5D69" />
-          </View>
-          <Text style={styles.loadingText}>Loading leave data...</Text>
+          <ActivityIndicator size="large" color="#0B5D69" />
+          <Text style={styles.loadingText}>Loading...</Text>
         </View>
       </SafeAreaView>
     );
@@ -92,67 +96,58 @@ export default function LeaveSummaryScreen() {
         }
       >
 
-        {/* HEADER */}
-        <View style={styles.headerSection}>
-          <Text style={styles.screenTitle}>Leave Summary</Text>
-          <Text style={styles.screenSubtitle}>Track your leave balance and history</Text>
+        {/* COMPACT HEADER WITH INLINE BALANCE */}
+        <View style={styles.compactHeader}>
+          <View style={styles.headerLeft}>
+            <Text style={styles.screenTitle}>Leave Summary</Text>
+            <View style={styles.balanceInline}>
+              <MaterialCommunityIcons name="calendar-check" size={16} color="#0B5D69" />
+              <Text style={styles.balanceText}>
+                <Text style={styles.balanceValue}>{leaveData?.remaingPaidLeave || 0}</Text> days remaining
+              </Text>
+            </View>
+          </View>
+          <View style={styles.totalBadge}>
+            <Text style={styles.totalValue}>{leaveData?.totalPaidLeaves || 0}</Text>
+            <Text style={styles.totalLabel}>Total</Text>
+          </View>
         </View>
 
-        {/* PRIMARY CARD - Remaining Balance */}
-        <View style={styles.primaryCard}>
-          <View style={styles.primaryCardContent}>
-            <Text style={styles.primaryLabel}>Remaining Paid Leaves</Text>
-            <Text style={styles.primaryValue}>{leaveData?.remaingPaidLeave || 0}</Text>
-            <Text style={styles.primarySubtext}>days available</Text>
-          </View>
-          <View style={styles.primaryIconCircle}>
-            <MaterialCommunityIcons name="calendar-check" size={32} color="#FFFFFF" />
-          </View>
-        </View>
-
-        {/* SUMMARY CARDS GRID */}
-        <View style={styles.summaryGrid}>
-          {/* Annual Allocation */}
-          <View style={styles.summaryCard}>
-            <View style={styles.cardIconSmall}>
-              <MaterialCommunityIcons name="calendar-month" size={20} color="#0B5D69" />
-            </View>
-            <Text style={styles.cardValue}>{leaveData?.totalPaidLeaves || 0}</Text>
-            <Text style={styles.cardLabel}>Annual Allocation</Text>
-          </View>
-
-          {/* Used Leaves */}
-          <View style={styles.summaryCard}>
-            <View style={styles.cardIconSmall}>
-              <MaterialCommunityIcons name="calendar-minus" size={20} color="#FF9800" />
-            </View>
-            <Text style={styles.cardValue}>{leaveData?.totalAppliedLeaves || 0}</Text>
-            <Text style={styles.cardLabel}>Total Applied</Text>
+        {/* COMPACT 4-COLUMN GRID */}
+        <View style={styles.compactGrid}>
+          {/* Used */}
+          <View style={styles.miniCard}>
+            <MaterialCommunityIcons name="calendar-minus" size={18} color="#FF9800" />
+            <Text style={styles.miniValue}>{leaveData?.totalAppliedLeaves || 0}</Text>
+            <Text style={styles.miniLabel}>Applied</Text>
           </View>
 
           {/* Paid Used */}
-          <View style={styles.summaryCard}>
-            <View style={styles.cardIconSmall}>
-              <MaterialCommunityIcons name="cash-check" size={20} color="#28a745" />
-            </View>
-            <Text style={styles.cardValue}>{leaveData?.paidLeave || 0}</Text>
-            <Text style={styles.cardLabel}>Paid Leaves Used</Text>
+          <View style={styles.miniCard}>
+            <MaterialCommunityIcons name="cash-check" size={18} color="#28a745" />
+            <Text style={styles.miniValue}>{leaveData?.paidLeave || 0}</Text>
+            <Text style={styles.miniLabel}>Paid</Text>
           </View>
 
           {/* Unpaid Used */}
-          <View style={styles.summaryCard}>
-            <View style={styles.cardIconSmall}>
-              <MaterialCommunityIcons name="cash-remove" size={20} color="#dc3545" />
-            </View>
-            <Text style={styles.cardValue}>{leaveData?.unpaidLeave || 0}</Text>
-            <Text style={styles.cardLabel}>Unpaid Leaves</Text>
+          <View style={styles.miniCard}>
+            <MaterialCommunityIcons name="cash-remove" size={18} color="#dc3545" />
+            <Text style={styles.miniValue}>{leaveData?.unpaidLeave || 0}</Text>
+            <Text style={styles.miniLabel}>Unpaid</Text>
+          </View>
+
+          {/* Balance */}
+          <View style={styles.miniCard}>
+            <MaterialCommunityIcons name="calendar-today" size={18} color="#0B5D69" />
+            <Text style={styles.miniValue}>{leaveData?.remaingPaidLeave || 0}</Text>
+            <Text style={styles.miniLabel}>Remaining</Text>
           </View>
         </View>
 
-        {/* FILTER SECTION */}
+        {/* COMPACT FILTER SECTION */}
         <View style={styles.filterSection}>
-          <Text style={styles.sectionTitle}>Leave History</Text>
-          <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.filterChips}>
+          <Text style={styles.sectionTitle}> ({filteredLeaves.length})</Text>
+          <View style={styles.filterChips}>
             {['all', 'approved', 'pending', 'rejected'].map((status) => (
               <TouchableOpacity
                 key={status}
@@ -161,14 +156,14 @@ export default function LeaveSummaryScreen() {
                 activeOpacity={0.7}
               >
                 <Text style={[styles.filterChipText, filterStatus === status && styles.filterChipTextActive]}>
-                  {status.charAt(0).toUpperCase() + status.slice(1)}
+                  {status === 'all' ? 'All' : status.charAt(0).toUpperCase() + status.slice(1)}
                 </Text>
               </TouchableOpacity>
             ))}
-          </ScrollView>
+          </View>
         </View>
 
-        {/* LEAVE HISTORY CARDS */}
+        {/* LEAVE CARDS */}
         {filteredLeaves.length > 0 ? (
           filteredLeaves.map((item) => {
             const statusStyle = getStatusStyle(item.status);
@@ -177,82 +172,67 @@ export default function LeaveSummaryScreen() {
             return (
               <TouchableOpacity
                 key={item.id}
-                style={styles.leaveCard}
+                style={styles.compactLeaveCard}
                 onPress={() => setExpandedId(isExpanded ? null : item.id)}
                 activeOpacity={0.7}
               >
-                {/* Card Header */}
-                <View style={styles.leaveCardHeader}>
-                  <View style={styles.leaveCardLeft}>
-                    <View style={styles.leaveTypeChip}>
-                      <MaterialCommunityIcons name="tag" size={14} color="#0B5D69" />
-                      <Text style={styles.leaveTypeText}>{item.leaveType}</Text>
+                {/* Single Row Layout */}
+                <View style={styles.cardMainRow}>
+                  <View style={styles.cardLeft}>
+                    <View style={styles.typeStatusRow}>
+                      <Text style={styles.leaveType}>{item.leaveType}</Text>
+                      <View style={[styles.miniStatusBadge, { backgroundColor: statusStyle.bgColor }]}>
+                        <MaterialCommunityIcons name={statusStyle.icon} size={10} color={statusStyle.color} />
+                        <Text style={[styles.statusTextMini, { color: statusStyle.color }]}>
+                          {item.status?.toUpperCase()}
+                        </Text>
+                      </View>
                     </View>
-                    <Text style={styles.leaveDuration}>{item.duration}</Text>
+                    <View style={styles.dateRowCompact}>
+                      <Text style={styles.dateTextCompact}>{item.fromDate} → {item.toDate}</Text>
+                      <Text style={styles.daysTextCompact}>• {item.leaveRequired}d</Text>
+                    </View>
                   </View>
                   
-                  <View style={[styles.statusBadge, { backgroundColor: statusStyle.bgColor }]}>
-                    <MaterialCommunityIcons name={statusStyle.icon} size={14} color={statusStyle.color} />
-                    <Text style={[styles.statusText, { color: statusStyle.color }]}>
-                      {item.status?.toUpperCase()}
-                    </Text>
-                  </View>
-                </View>
-
-                {/* Card Body */}
-                <View style={styles.leaveCardBody}>
-                  <View style={styles.dateRow}>
-                    <MaterialCommunityIcons name="calendar-range" size={16} color="#666" />
-                    <Text style={styles.dateText}>{item.fromDate} → {item.toDate}</Text>
-                    <View style={styles.daysChip}>
-                      <Text style={styles.daysText}>{item.leaveRequired} days</Text>
-                    </View>
-                  </View>
-
-                  {isExpanded && (
-                    <View style={styles.expandedSection}>
-                      <View style={styles.detailRow}>
-                        <MaterialCommunityIcons name="calendar-clock" size={16} color="#666" />
-                        <Text style={styles.detailLabel}>Applied on:</Text>
-                        <Text style={styles.detailValue}>{item.leaveRequestDate}</Text>
-                      </View>
-                      
-                      <View style={styles.detailRow}>
-                        <MaterialCommunityIcons name="text-box" size={16} color="#666" />
-                        <Text style={styles.detailLabel}>Reason:</Text>
-                      </View>
-                      <Text style={styles.reasonText}>{item.reasondescription}</Text>
-                    </View>
-                  )}
-                </View>
-
-                {/* Expand/Collapse Indicator */}
-                <View style={styles.expandIndicator}>
                   <MaterialCommunityIcons 
                     name={isExpanded ? "chevron-up" : "chevron-down"} 
                     size={20} 
-                    color="#999" 
+                    color="#0078D4" 
                   />
                 </View>
+
+                {/* Expanded Details */}
+                {isExpanded && (
+                  <View style={styles.expandedCompact}>
+                    <View style={styles.expandedRow}>
+                      <Text style={styles.expandedLabel}>Applied:</Text>
+                      <Text style={styles.expandedValue}>{item.leaveRequestDate}</Text>
+                    </View>
+                    <View style={styles.expandedRow}>
+                      <Text style={styles.expandedLabel}>Duration:</Text>
+                      <Text style={styles.expandedValue}>{item.duration}</Text>
+                    </View>
+                    <View style={styles.reasonRow}>
+                      <Text style={styles.expandedLabel}>Reason:</Text>
+                      <Text style={styles.reasonTextCompact}>{item.reasondescription}</Text>
+                    </View>
+                  </View>
+                )}
               </TouchableOpacity>
             );
           })
         ) : (
           <View style={styles.emptyState}>
-            <View style={styles.emptyIconCircle}>
-              <MaterialCommunityIcons name="calendar-blank" size={48} color="#0B5D69" />
-            </View>
-            <Text style={styles.emptyTitle}>No Leave Records</Text>
-            <Text style={styles.emptySubtitle}>
+            <MaterialCommunityIcons name="calendar-blank" size={40} color="#CCC" />
+            <Text style={styles.emptyText}>
               {filterStatus === 'all' 
-                ? "You haven't applied for any leaves yet" 
-                : `No ${filterStatus} leaves found`}
+                ? "No leave records yet" 
+                : `No ${filterStatus} leaves`}
             </Text>
           </View>
         )}
 
-        {/* Bottom Spacing */}
-        <View style={{ height: 20 }} />
+        <View style={{ height: 12 }} />
       </ScrollView>
     </SafeAreaView>
   );
@@ -260,52 +240,51 @@ export default function LeaveSummaryScreen() {
 
 const styles = StyleSheet.create({
   safeArea: { flex: 1, backgroundColor: '#F8F9FA' },
-  scrollContent: { padding: 16 },
+  scrollContent: { padding: 12 },
   loaderContainer: { flex: 1, justifyContent: 'center', alignItems: 'center' },
-  loaderCircle: { width: 80, height: 80, borderRadius: 40, backgroundColor: '#F0F7F8', justifyContent: 'center', alignItems: 'center', marginBottom: 16 },
-  loadingText: { fontFamily: 'Poppins-Regular', fontSize: 14, color: '#666', marginTop: 8 },
-  headerSection: { marginBottom: 20 },
-  screenTitle: { fontFamily: 'Poppins-Bold', fontSize: 26, color: '#222', marginBottom: 4 },
-  screenSubtitle: { fontFamily: 'Poppins-Regular', fontSize: 14, color: '#666' },
-  primaryCard: { backgroundColor: '#0B5D69', borderRadius: 20, padding: 24, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20, elevation: 4, shadowColor: '#0B5D69', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.3, shadowRadius: 8 },
-  primaryCardContent: { flex: 1 },
-  primaryLabel: { fontFamily: 'Poppins-Regular', fontSize: 14, color: '#fff', opacity: 0.9 },
-  primaryValue: { fontFamily: 'Poppins-Bold', fontSize: 48, color: '#fff', marginVertical: 4 },
-  primarySubtext: { fontFamily: 'Poppins-Regular', fontSize: 13, color: '#fff', opacity: 0.8 },
-  primaryIconCircle: { width: 64, height: 64, borderRadius: 32, backgroundColor: 'rgba(255,255,255,0.2)', justifyContent: 'center', alignItems: 'center' },
-  summaryGrid: { flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'space-between', marginBottom: 24 },
-  summaryCard: { width: '48%', backgroundColor: '#fff', borderRadius: 16, padding: 16, marginBottom: 12, elevation: 2, shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.1, shadowRadius: 4, alignItems: 'center' },
-  cardIconSmall: { width: 40, height: 40, borderRadius: 20, backgroundColor: '#F0F7F8', justifyContent: 'center', alignItems: 'center', marginBottom: 12 },
-  cardValue: { fontFamily: 'Poppins-Bold', fontSize: 28, color: '#222', marginBottom: 4 },
-  cardLabel: { fontFamily: 'Poppins-Regular', fontSize: 12, color: '#666', textAlign: 'center' },
-  filterSection: { marginBottom: 16 },
-  sectionTitle: { fontFamily: 'Poppins-SemiBold', fontSize: 18, color: '#222', marginBottom: 12 },
+  loadingText: { fontFamily: 'Poppins-Regular', fontSize: 13, color: '#666', marginTop: 8 },
+  // COMPACT HEADER
+  compactHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', backgroundColor: '#fff', borderRadius: 12, padding: 12, marginBottom: 10, elevation: 2, shadowColor: '#000', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.08, shadowRadius: 3 },
+  headerLeft: { flex: 1 },
+  screenTitle: { fontFamily: 'Poppins-Bold', fontSize: 20, color: '#222', marginBottom: 2 },
+  balanceInline: { flexDirection: 'row', alignItems: 'center', marginTop: 2 },
+  balanceText: { fontFamily: 'Poppins-Regular', fontSize: 13, color: '#666', marginLeft: 4 },
+  balanceValue: { fontFamily: 'Poppins-Bold', fontSize: 15, color: '#0B5D69' },
+  totalBadge: { backgroundColor: '#0B5D69', borderRadius: 10, paddingHorizontal: 12, paddingVertical: 8, alignItems: 'center', minWidth: 60 },
+  totalValue: { fontFamily: 'Poppins-Bold', fontSize: 22, color: '#fff' },
+  totalLabel: { fontFamily: 'Poppins-Regular', fontSize: 10, color: '#fff', opacity: 0.9 },
+  // COMPACT 4-COLUMN GRID
+  compactGrid: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 10 },
+  miniCard: { width: '24%', backgroundColor: '#fff', borderRadius: 10, padding: 10, elevation: 1, shadowColor: '#000', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.06, shadowRadius: 2, alignItems: 'center' },
+  miniValue: { fontFamily: 'Poppins-Bold', fontSize: 18, color: '#222', marginTop: 4, marginBottom: 2 },
+  miniLabel: { fontFamily: 'Poppins-Regular', fontSize: 10, color: '#666', textAlign: 'center' },
+  // FILTER SECTION
+  filterSection: { marginBottom: 10, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
+  sectionTitle: { fontFamily: 'Poppins-SemiBold', fontSize: 15, color: '#222' },
   filterChips: { flexDirection: 'row' },
-  filterChip: { paddingHorizontal: 20, paddingVertical: 8, borderRadius: 20, backgroundColor: '#fff', marginRight: 8, borderWidth: 1, borderColor: '#E0E0E0' },
+  filterChip: { paddingHorizontal: 12, paddingVertical: 5, borderRadius: 12, backgroundColor: '#fff', marginLeft: 6, borderWidth: 1, borderColor: '#E0E0E0' },
   filterChipActive: { backgroundColor: '#0B5D69', borderColor: '#0B5D69' },
-  filterChipText: { fontFamily: 'Poppins-Medium', fontSize: 13, color: '#666' },
+  filterChipText: { fontFamily: 'Poppins-Medium', fontSize: 11, color: '#666' },
   filterChipTextActive: { color: '#fff' },
-  leaveCard: { backgroundColor: '#fff', borderRadius: 16, padding: 16, marginBottom: 12, elevation: 2, shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.08, shadowRadius: 4 },
-  leaveCardHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 12 },
-  leaveCardLeft: { flex: 1 },
-  leaveTypeChip: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#F0F7F8', paddingHorizontal: 10, paddingVertical: 4, borderRadius: 12, alignSelf: 'flex-start', marginBottom: 6 },
-  leaveTypeText: { fontFamily: 'Poppins-Medium', fontSize: 11, color: '#0B5D69', marginLeft: 4 },
-  leaveDuration: { fontFamily: 'Poppins-SemiBold', fontSize: 16, color: '#222' },
-  statusBadge: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 10, paddingVertical: 6, borderRadius: 12 },
-  statusText: { fontFamily: 'Poppins-SemiBold', fontSize: 11, marginLeft: 4 },
-  leaveCardBody: { borderTopWidth: 1, borderTopColor: '#F0F0F0', paddingTop: 12 },
-  dateRow: { flexDirection: 'row', alignItems: 'center', marginBottom: 8 },
-  dateText: { fontFamily: 'Poppins-Regular', fontSize: 13, color: '#666', marginLeft: 6, flex: 1 },
-  daysChip: { backgroundColor: '#E3F2FD', paddingHorizontal: 10, paddingVertical: 4, borderRadius: 12 },
-  daysText: { fontFamily: 'Poppins-SemiBold', fontSize: 11, color: '#2196F3' },
-  expandedSection: { marginTop: 12, paddingTop: 12, borderTopWidth: 1, borderTopColor: '#F0F0F0' },
-  detailRow: { flexDirection: 'row', alignItems: 'center', marginBottom: 8 },
-  detailLabel: { fontFamily: 'Poppins-Medium', fontSize: 12, color: '#666', marginLeft: 6 },
-  detailValue: { fontFamily: 'Poppins-Regular', fontSize: 12, color: '#222', marginLeft: 4 },
-  reasonText: { fontFamily: 'Poppins-Regular', fontSize: 13, color: '#444', lineHeight: 20, marginLeft: 22, marginTop: 4 },
-  expandIndicator: { alignItems: 'center', marginTop: 8 },
-  emptyState: { alignItems: 'center', paddingVertical: 60, paddingHorizontal: 30 },
-  emptyIconCircle: { width: 100, height: 100, borderRadius: 50, backgroundColor: '#F0F7F8', justifyContent: 'center', alignItems: 'center', marginBottom: 20 },
-  emptyTitle: { fontFamily: 'Poppins-SemiBold', fontSize: 18, color: '#333', marginBottom: 8 },
-  emptySubtitle: { fontFamily: 'Poppins-Regular', fontSize: 14, color: '#666', textAlign: 'center', lineHeight: 20 }
+  // ULTRA COMPACT LEAVE CARDS
+  compactLeaveCard: { backgroundColor: '#fff', borderRadius: 10, padding: 12, marginBottom: 8, elevation: 1, shadowColor: '#000', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.06, shadowRadius: 2 },
+  cardMainRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
+  cardLeft: { flex: 1 },
+  typeStatusRow: { flexDirection: 'row', alignItems: 'center', marginBottom: 4 },
+  leaveType: { fontFamily: 'Poppins-SemiBold', fontSize: 14, color: '#222', marginRight: 8 },
+  miniStatusBadge: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 6, paddingVertical: 2, borderRadius: 8 },
+  statusTextMini: { fontFamily: 'Poppins-SemiBold', fontSize: 9, marginLeft: 3 },
+  dateRowCompact: { flexDirection: 'row', alignItems: 'center' },
+  dateTextCompact: { fontFamily: 'Poppins-Regular', fontSize: 12, color: '#666' },
+  daysTextCompact: { fontFamily: 'Poppins-SemiBold', fontSize: 11, color: '#2196F3', marginLeft: 6 },
+  // EXPANDED SECTION
+  expandedCompact: { marginTop: 10, paddingTop: 10, borderTopWidth: 1, borderTopColor: '#F0F0F0'  },
+  expandedRow: { flexDirection: 'row', marginBottom: 4 },
+  expandedLabel: { fontFamily: 'Poppins-Medium', fontSize: 11, color: '#666', width: 70 },
+  expandedValue: { fontFamily: 'Poppins-Regular', fontSize: 11, color: '#222', flex: 1 },
+  reasonRow: { marginTop: 4 },
+  reasonTextCompact: { fontFamily: 'Poppins-Regular', fontSize: 11, color: '#444', lineHeight: 16, marginTop: 2 }, 
+  // EMPTY STATE
+  emptyState: { alignItems: 'center', paddingVertical: 40 },
+  emptyText: { fontFamily: 'Poppins-Regular', fontSize: 13, color: '#999', marginTop: 8 }
 });
