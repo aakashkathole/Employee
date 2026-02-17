@@ -54,38 +54,13 @@ const CustomPicker = ({ placeholder, options, selectedValue, onValueChange }) =>
 };
 
 const styles = StyleSheet.create({
-  container: { marginBottom: 15 },
-  pickerTrigger: {
-    marginHorizontal: 15,
-    padding: 15,
-    borderWidth: 1,
-    borderColor: '#D1D1D1',
-    borderRadius: 25,
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    backgroundColor: '#FFF',
-  },
-  valueText: { fontSize: 16, color: '#000', fontFamily: 'Poppins-Regular', },
-  placeholderText: { color: '#999' }, // Grey hint text
-  modalOverlay: { 
-    flex: 1, 
-    backgroundColor: 'rgba(0,0,0,0.4)', 
-    justifyContent: 'flex-end' 
-  },
-  modalContent: { 
-    backgroundColor: '#fff', 
-    borderTopLeftRadius: 25, 
-    borderTopRightRadius: 25, 
-    padding: 20, 
-    maxHeight: '40%' 
-  },
-  modalHeader: { 
-    fontSize: 14,
-    fontFamily: 'Poppins-Medium', 
-    color: '#000080', 
-    marginBottom: 10, 
-    textAlign: 'center',
-  },
+  container: { marginBottom: 1 },
+  pickerTrigger: { marginHorizontal: 1, borderWidth: 1, borderColor: '#D1D1D1', padding: 3, borderRadius: 12, flexDirection: 'row', justifyContent: 'space-between', backgroundColor: '#FFF', },
+  valueText: { fontSize: 15, color: '#000', fontFamily: 'Poppins-Regular', marginLeft: 5 },
+  placeholderText: { color: '#999' }, 
+  modalOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.4)', justifyContent: 'flex-end' },
+  modalContent: { backgroundColor: '#fff', borderTopLeftRadius: 25, borderTopRightRadius: 25, padding: 20, maxHeight: '40%' },
+  modalHeader: { fontSize: 14, fontFamily: 'Poppins-Medium', color: '#000080', marginBottom: 10, textAlign: 'center', },
   optionItem: { paddingVertical: 15, borderBottomWidth: 1, borderBottomColor: '#F0F0F0' },
   optionText: { fontSize: 16,fontFamily: 'Poppins-Regular', textAlign: 'center' },
 });

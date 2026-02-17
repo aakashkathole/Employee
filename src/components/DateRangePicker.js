@@ -88,7 +88,7 @@ export default function DateRangePicker({ onChange, allowRange = true, value, du
         }}
       >
         <Text style={styles.valueText}>{displayText}</Text>
-        <MaterialCommunityIcons name="calendar" size={22} color="#000080" />
+        <MaterialCommunityIcons name="chevron-down" size={24} color="#000080" />
       </TouchableOpacity>
 
       {/* Modal */}
@@ -160,9 +160,9 @@ export default function DateRangePicker({ onChange, allowRange = true, value, du
 }
 
 const styles = StyleSheet.create({
-  container: { marginBottom: 15},
-  pickerTrigger: { flexDirection: 'row', marginHorizontal: 15, padding: 15, borderWidth: 1, borderColor: '#D1D1D1', borderRadius: 25, justifyContent: 'space-between', backgroundColor: '#FFF'},
-  valueText: { fontFamily: 'Poppins-Regular',fontSize: 16, color: '#000',},
+  container: { marginBottom: 1},
+  pickerTrigger: { flexDirection: 'row', marginHorizontal: 1, padding: 3, borderWidth: 1, borderColor: '#D1D1D1', borderRadius: 12, justifyContent: 'space-between', backgroundColor: '#FFF'},
+  valueText: { fontFamily: 'Poppins-Regular',fontSize: 15, color: '#000', marginLeft: 5, },
   overlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.4)', justifyContent: 'flex-end'},
   modalContent: {backgroundColor: '#fff', borderTopLeftRadius: 25, borderTopRightRadius: 25, maxHeight: '60%'},
   header: { fontSize: 14, fontFamily: 'Poppins-Medium', color: '#000080', marginVertical: 10, textAlign: 'center',},
