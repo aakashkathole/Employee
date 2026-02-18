@@ -28,7 +28,7 @@ export default function QueryScreen() {
       if (isRefreshing) setRefreshing(true);
       else setLoading(true);
       const data = await fetchAllQueries();
-      setQueries(data);
+      setQueries(data.reverse());
       setQuery('');
       setIsEditing(false);
       setEditingQueryId(null);
