@@ -3,6 +3,7 @@ import React, { useEffect, useState, useCallback } from 'react';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import { fetchLeaveSummary, fetchAllLeavesByEmployeeId } from '../Services/leaveService';
+import { useNavigation } from '@react-navigation/native';
 
 export default function LeaveSummaryScreen() {
   const [leaveData, setLeaveData] = useState(null);
@@ -11,6 +12,7 @@ export default function LeaveSummaryScreen() {
   const [refreshing, setRefreshing] = useState(false);
   const [expandedId, setExpandedId] = useState(null);
   const [filterStatus, setFilterStatus] = useState('all');
+  const navigation = useNavigation();
 
   // fetch leave summary data and leave list
   const loadData = async () => {
@@ -95,6 +97,18 @@ export default function LeaveSummaryScreen() {
           />
         }
       >
+
+        {/* Header Section */}
+        <View style={styles.header}>
+          <TouchableOpacity
+            onPress={() => navigation.goBack()}
+            style={styles.backBtn}
+            activeOpacity={0.7}
+            >
+              <MaterialCommunityIcons name="chevron-left" size={22} color="#ffffff" />
+            </TouchableOpacity>
+          <Text style={styles.headerTitle}>Leave Detail's</Text>
+        </View>
 
         {/* COMPACT HEADER WITH INLINE BALANCE */}
         <View style={styles.compactHeader}>
@@ -240,11 +254,15 @@ export default function LeaveSummaryScreen() {
 
 const styles = StyleSheet.create({
   safeArea: { flex: 1, backgroundColor: '#F8F9FA' },
-  scrollContent: { padding: 12 },
+  scrollContent: {  },
   loaderContainer: { flex: 1, justifyContent: 'center', alignItems: 'center' },
   loadingText: { fontFamily: 'Poppins-Regular', fontSize: 13, color: '#666', marginTop: 8 },
+  // Header
+  header: { flexDirection: 'row', paddingHorizontal: 20, paddingTop: 10, paddingBottom: 10, backgroundColor: '#fff', borderBottomWidth: 1, borderBottomColor: '#E8ECF0', gap: 8 },
+  backBtn: { marginRight: 4, padding: 4, backgroundColor: "#2563eb", borderRadius: 8, },
+  headerTitle: { fontSize: 17, fontFamily: 'Poppins-SemiBold', color: '#1A1A1A', marginBottom: 5, },
   // COMPACT HEADER
-  compactHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', backgroundColor: '#fff', borderRadius: 12, padding: 12, marginBottom: 10, elevation: 2, shadowColor: '#000', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.08, shadowRadius: 3 },
+  compactHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', backgroundColor: '#fff', borderRadius: 12, padding: 12, marginBottom: 10, elevation: 2, shadowColor: '#000', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.08, shadowRadius: 3, marginHorizontal: 12, marginTop: 12 },
   headerLeft: { flex: 1 },
   screenTitle: { fontFamily: 'Poppins-Bold', fontSize: 20, color: '#222', marginBottom: 2 },
   balanceInline: { flexDirection: 'row', alignItems: 'center', marginTop: 2 },
@@ -254,12 +272,12 @@ const styles = StyleSheet.create({
   totalValue: { fontFamily: 'Poppins-Bold', fontSize: 22, color: '#fff' },
   totalLabel: { fontFamily: 'Poppins-Regular', fontSize: 10, color: '#fff', opacity: 0.9 },
   // COMPACT 4-COLUMN GRID
-  compactGrid: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 10 },
+  compactGrid: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 10, paddingHorizontal: 12, },
   miniCard: { width: '24%', backgroundColor: '#fff', borderRadius: 10, padding: 10, elevation: 1, shadowColor: '#000', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.06, shadowRadius: 2, alignItems: 'center' },
   miniValue: { fontFamily: 'Poppins-Bold', fontSize: 18, color: '#222', marginTop: 4, marginBottom: 2 },
   miniLabel: { fontFamily: 'Poppins-Regular', fontSize: 10, color: '#666', textAlign: 'center' },
   // FILTER SECTION
-  filterSection: { marginBottom: 10, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
+  filterSection: { marginBottom: 10, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: 12, },
   sectionTitle: { fontFamily: 'Poppins-SemiBold', fontSize: 15, color: '#222' },
   filterChips: { flexDirection: 'row' },
   filterChip: { paddingHorizontal: 12, paddingVertical: 5, borderRadius: 12, backgroundColor: '#fff', marginLeft: 6, borderWidth: 1, borderColor: '#E0E0E0' },
@@ -267,8 +285,8 @@ const styles = StyleSheet.create({
   filterChipText: { fontFamily: 'Poppins-Medium', fontSize: 11, color: '#666' },
   filterChipTextActive: { color: '#fff' },
   // ULTRA COMPACT LEAVE CARDS
-  compactLeaveCard: { backgroundColor: '#fff', borderRadius: 10, padding: 12, marginBottom: 8, elevation: 1, shadowColor: '#000', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.06, shadowRadius: 2 },
-  cardMainRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
+  compactLeaveCard: { backgroundColor: '#fff', borderRadius: 10, padding: 12, marginHorizontal: 12, marginBottom: 8, elevation: 1, shadowColor: '#000', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.06, shadowRadius: 2 },
+  cardMainRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', },
   cardLeft: { flex: 1 },
   typeStatusRow: { flexDirection: 'row', alignItems: 'center', marginBottom: 4 },
   leaveType: { fontFamily: 'Poppins-SemiBold', fontSize: 14, color: '#222', marginRight: 8 },
