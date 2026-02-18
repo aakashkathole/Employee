@@ -21,7 +21,7 @@ export default function MemoScreen() {
       if (isRefreshing) setRefreshing(true);
       else setLoading(true);
       const data = await fetchMemo();
-      setMemo(data);
+      setMemo(data.reverse());
     } catch (error) {
       console.error(error);
       Alert.alert("Error", "Failed to fetch Memo.");
