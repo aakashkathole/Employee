@@ -6,6 +6,7 @@ import CustomPicker from "../components/CustomPicker";
 import DateRangePicker from "../components/DateRangePicker";
 import moment from 'moment';
 import { createLeaveRequest } from '../Services/leaveService';
+import { useNavigation } from '@react-navigation/native';
 
 export default function ApplyLeaveScreen() {
 
@@ -17,6 +18,7 @@ export default function ApplyLeaveScreen() {
   });
   const [text, setText] = useState('');
   const [loading, setLoading] = useState(false);
+  const navigation = useNavigation();
 
   // function to calculate leave  
   const calculateLeave = (duration, fromDate, toDate) => {
@@ -106,6 +108,13 @@ export default function ApplyLeaveScreen() {
         
         {/* Header Section */}
         <View style={styles.header}>
+          <TouchableOpacity
+            onPress={() => navigation.goBack()}
+            style={styles.backBtn}
+            activeOpacity={0.7}
+            >
+              <MaterialCommunityIcons name="chevron-left" size={22} color="#ffffff" />
+            </TouchableOpacity>
           <Text style={styles.headerTitle}>Apply for Leave</Text>
         </View>
 
@@ -283,8 +292,9 @@ const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#F5F7FA', },
   scrollView: { flex: 1, backgroundColor: '#F5F7FA', },
   // Header Styles
-  header: { paddingHorizontal: 20, paddingTop: 10, paddingBottom: 10, backgroundColor: '#fff', borderBottomWidth: 1, borderBottomColor: '#E8ECF0', },
-  headerTitle: { fontSize: 12, fontFamily: 'Poppins-SemiBold', color: '#1A1A1A', marginBottom: 5, alignSelf: 'center', },
+  header: { flexDirection: 'row', paddingHorizontal: 20, paddingTop: 10, paddingBottom: 10, backgroundColor: '#fff', borderBottomWidth: 1, borderBottomColor: '#E8ECF0', gap: 8 },
+  backBtn: { marginRight: 4, padding: 4, backgroundColor: "#2563eb", borderRadius: 8, },
+  headerTitle: { fontSize: 17, fontFamily: 'Poppins-SemiBold', color: '#1A1A1A', marginBottom: 5, },
   // Section Styles
   section: { marginTop: 4, marginHorizontal: 12, backgroundColor: '#fff', borderRadius: 12, padding: 9, shadowColor: '#000', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.05, shadowRadius: 3, elevation: 2, },
   labelContainer: { flexDirection: 'row', alignItems: 'center', marginBottom: 6, },
