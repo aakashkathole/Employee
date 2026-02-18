@@ -1,18 +1,23 @@
-import { StyleSheet, Text, View, FlatList, TouchableOpacity, ActivityIndicator, Alert } from 'react-native';
+import { StyleSheet, Text, View, FlatList, TouchableOpacity, ActivityIndicator, Alert, LayoutAnimation, UIManager, Platform } from 'react-native';
 import React, { useEffect, useState } from 'react';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import { fetchMemo } from '../Services/memoService';
+
+if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental) {
+  UIManager.setLayoutAnimationEnabledExperimental(true);
+}
 
 export default function MemoScreen() {
   const [memo, setMemo] = useState([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
+  const [expandedId, setExpandedId] = useState(null);
 
   const loadData = async (isRefreshing = false) => {
     try {
       if (isRefreshing) setRefreshing(true);
       else setLoading(true);
-      
       const data = await fetchMemo();
       setMemo(data);
     } catch (error) {
@@ -24,61 +29,75 @@ export default function MemoScreen() {
     }
   };
 
-  useEffect(() => {
-    loadData();
-  }, []);
+  useEffect(() => { loadData(); }, []);
 
   const formatDate = (dateString) => {
     if (!dateString) return 'N/A';
     const date = new Date(dateString);
-    return date.toLocaleDateString('en-US', {
-      month: 'short',
-      day: 'numeric',
-      year: 'numeric'
-    });
+    return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
   };
 
-  const handleMemoPress = (item) => {
-    // Navigate to detail screen or show modal
-    Alert.alert(item.memoName, item.memoDescription);
+  const toggleExpand = (id) => {
+    LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
+    setExpandedId(prev => prev === id ? null : id);
   };
 
-  const renderMemoCard = ({ item, index }) => (
-    <TouchableOpacity 
-      style={styles.card}
-      onPress={() => handleMemoPress(item)}
-      activeOpacity={0.7}
-    >
-      {/* Card Header with Number and Date */}
-      <View style={styles.cardTopRow}>
-        <Text style={styles.cardNumber}>#{index + 1}</Text>
-        <Text style={styles.cardDate}>{formatDate(item.createdAt)}</Text>
-      </View>
+  const renderMemoCard = ({ item, index }) => {
+    const cardKey = item.id?.toString() || index.toString();
+    const isExpanded = expandedId === cardKey;
 
-      {/* Memo Name Section */}
-      <View style={styles.cardSection}>
-        <Text style={styles.label}>Memo Name</Text>
-        <Text style={styles.memoName} numberOfLines={2}>
-          {item.memoName || 'Untitled Memo'}
-        </Text>
-      </View>
+    return (
+      <TouchableOpacity
+        style={styles.card}
+        onPress={() => toggleExpand(cardKey)}
+        activeOpacity={0.75}
+      >
+        {/* Collapsed Row */}
+        <View style={styles.cardRow}>
+          {/* Left: icon + index badge */}
+          <View style={styles.badgeWrap}>
+            <MaterialCommunityIcons name="note-text-outline" size={15} color="#007bff" />
+            <Text style={styles.cardNumber}>{index + 1}</Text>
+          </View>
 
-      {/* Description Section */}
-      <View style={styles.cardSection}>
-        <Text style={styles.label}>Description</Text>
-        <Text style={styles.description} numberOfLines={3}>
-          {item.memoDescription || 'No description available'}
-        </Text>
-      </View>
+          {/* Middle: memo name + date */}
+          <View style={styles.cardMeta}>
+            <Text style={styles.memoName} numberOfLines={1}>
+              {item.memoName || 'Untitled Memo'}
+            </Text>
+            <View style={styles.dateRow}>
+              <MaterialCommunityIcons name="calendar-outline" size={11} color="#aaa" />
+              <Text style={styles.cardDate}> {formatDate(item.createdAt)}</Text>
+            </View>
+          </View>
 
-      {/* Tap Indicator */}
-      <Text style={styles.tapHint}>Tap to view details</Text>
-    </TouchableOpacity>
-  );
+          {/* Right: chevron */}
+          <MaterialCommunityIcons
+            name={isExpanded ? 'chevron-up' : 'chevron-down'}
+            size={20}
+            color="#007bff"
+          />
+        </View>
+
+        {/* Expanded: description */}
+        {isExpanded && (
+          <View style={styles.expandedSection}>
+            <View style={styles.descHeader}>
+              <MaterialCommunityIcons name="text-box-outline" size={13} color="#999" />
+              <Text style={styles.descLabel}> Description</Text>
+            </View>
+            <Text style={styles.description}>
+              {item.memoDescription || 'No description available.'}
+            </Text>
+          </View>
+        )}
+      </TouchableOpacity>
+    );
+  };
 
   const renderEmptyState = () => (
     <View style={styles.emptyContainer}>
-      <Text style={styles.emptyIcon}>📝</Text>
+      <MaterialCommunityIcons name="note-off-outline" size={56} color="#ccc" />
       <Text style={styles.emptyTitle}>No Memos Yet</Text>
       <Text style={styles.emptySubtitle}>Your memos will appear here</Text>
     </View>
@@ -95,15 +114,19 @@ export default function MemoScreen() {
 
   return (
     <SafeAreaView style={styles.container}>
-      {/* Screen Header */}
+      {/* Header */}
       <View style={styles.header}>
-        <Text style={styles.headerTitle}>Memos</Text>
-        <Text style={styles.headerSubtitle}>
-          {memo.length} {memo.length === 1 ? 'memo' : 'memos'} total
-        </Text>
+        <View style={styles.headerLeft}>
+          <MaterialCommunityIcons name="notebook-outline" size={22} color="#007bff" />
+          <Text style={styles.headerTitle}>Memos</Text>
+        </View>
+        <View style={styles.countBadge}>
+          <Text style={styles.countText}>
+            {memo.length} {memo.length === 1 ? 'memo' : 'memos'}
+          </Text>
+        </View>
       </View>
 
-      {/* Memos List */}
       <FlatList
         data={memo}
         renderItem={renderMemoCard}
@@ -119,30 +142,35 @@ export default function MemoScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#f5f5f5', },
-  center: { flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#f5f5f5', },
-  loadingText: { marginTop: 12, fontFamily: 'Poppins-Regular', fontSize: 14, color: '#666', },
-  // Header Styles
-  header: { backgroundColor: '#fff', paddingHorizontal: 20, paddingTop: 16, paddingBottom: 16, borderBottomWidth: 1, borderBottomColor: '#e0e0e0', elevation: 2, shadowColor: '#000', shadowOffset: { width: 0, height: 1 },
-  shadowOpacity: 0.1, shadowRadius: 2, },
-  headerTitle: { fontFamily: 'Poppins-Bold', fontSize: 24, color: '#333', marginBottom: 4, },
-  headerSubtitle: { fontFamily: 'Poppins-Regular', fontSize: 14, color: '#666', },
-  // List Styles
-  listContent: { padding: 16, flexGrow: 1, },
-  // Card Styles
-  card: { backgroundColor: '#fff', borderRadius: 12, padding: 16, marginBottom: 16, elevation: 3, shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.1, shadowRadius: 3, borderLeftWidth: 4, borderLeftColor: '#007bff', },
-  cardTopRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12, },
-  cardNumber: { fontFamily: 'Poppins-SemiBold', fontSize: 12, color: '#007bff', backgroundColor: '#e3f2fd', paddingHorizontal: 10, paddingVertical: 4, borderRadius: 6, },
-  cardDate: { fontFamily: 'Poppins-Regular', fontSize: 12, color: '#999', },
-  // Card Section Styles
-  cardSection: { marginBottom: 12, },
-  label: { fontFamily: 'Poppins-Medium', fontSize: 11, color: '#999', textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 4, },
-  memoName: { fontFamily: 'Poppins-SemiBold', fontSize: 17, color: '#333', lineHeight: 24, },
-  description: { fontFamily: 'Poppins-Regular', fontSize: 14, color: '#666', lineHeight: 20, },
-  tapHint: { fontFamily: 'Poppins-Regular', fontSize: 11, color: '#007bff', textAlign: 'right', marginTop: 4, fontStyle: 'italic', },
-  // Empty State Styles
-  emptyContainer: { flex: 1, justifyContent: 'center', alignItems: 'center', paddingVertical: 60, },
-  emptyIcon: { fontSize: 64, marginBottom: 16, },
-  emptyTitle: { fontFamily: 'Poppins-SemiBold', fontSize: 18, color: '#333', marginBottom: 8, },
-  emptySubtitle: { fontFamily: 'Poppins-Regular', fontSize: 14, color: '#999', },
+  container: { flex: 1, backgroundColor: '#f0f4f8' },
+  center: { flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#f0f4f8' },
+  loadingText: { marginTop: 8, fontFamily: 'Poppins-Regular', fontSize: 13, color: '#666' },
+  // Header
+  header: { backgroundColor: '#fff', paddingHorizontal: 16, paddingVertical: 10, borderBottomWidth: 1, borderBottomColor: '#e0e0e0', flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', elevation: 2, shadowColor: '#000', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.08, shadowRadius: 2, },
+  headerLeft: { flexDirection: 'row', alignItems: 'center', gap: 6 },
+  headerTitle: { fontFamily: 'Poppins-Bold', fontSize: 20, color: '#222' },
+  countBadge: { backgroundColor: '#e3f2fd', paddingHorizontal: 10, paddingVertical: 3, borderRadius: 12, },
+  countText: { fontFamily: 'Poppins-Medium', fontSize: 12, color: '#007bff' },
+  // List
+  listContent: { paddingHorizontal: 12, paddingVertical: 8, flexGrow: 1 },
+  // Card
+  card: { backgroundColor: '#fff', borderRadius: 8, paddingHorizontal: 12, paddingVertical: 9, marginBottom: 6, borderLeftWidth: 3, borderLeftColor: '#007bff', elevation: 1, shadowColor: '#000', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.06, shadowRadius: 2, },
+  cardRow: { flexDirection: 'row', alignItems: 'center', gap: 10 },
+  // Badge
+  badgeWrap: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#e3f2fd', borderRadius: 6, paddingHorizontal: 6, paddingVertical: 3, gap: 3, },
+  cardNumber: { fontFamily: 'Poppins-SemiBold', fontSize: 11, color: '#007bff' },
+  // Meta
+  cardMeta: { flex: 1 },
+  memoName: { fontFamily: 'Poppins-SemiBold', fontSize: 14, color: '#222', marginBottom: 2 },
+  dateRow: { flexDirection: 'row', alignItems: 'center' },
+  cardDate: { fontFamily: 'Poppins-Regular', fontSize: 11, color: '#aaa' },
+  // Expanded
+  expandedSection: { marginTop: 8, paddingTop: 8, borderTopWidth: 1, borderTopColor: '#f0f0f0', },
+  descHeader: { flexDirection: 'row', alignItems: 'center', marginBottom: 4 },
+  descLabel: { fontFamily: 'Poppins-Medium', fontSize: 11, color: '#999', textTransform: 'uppercase', letterSpacing: 0.4 },
+  description: { fontFamily: 'Poppins-Regular', fontSize: 13, color: '#555', lineHeight: 18 },
+  // Empty
+  emptyContainer: { flex: 1, justifyContent: 'center', alignItems: 'center', paddingVertical: 40 },
+  emptyTitle: { fontFamily: 'Poppins-SemiBold', fontSize: 16, color: '#333', marginTop: 10, marginBottom: 4 },
+  emptySubtitle: { fontFamily: 'Poppins-Regular', fontSize: 13, color: '#999' },
 });
