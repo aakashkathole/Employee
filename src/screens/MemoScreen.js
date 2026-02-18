@@ -3,6 +3,7 @@ import React, { useEffect, useState } from 'react';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import { fetchMemo } from '../Services/memoService';
+import { useNavigation } from '@react-navigation/native';
 
 if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental) {
   UIManager.setLayoutAnimationEnabledExperimental(true);
@@ -13,6 +14,7 @@ export default function MemoScreen() {
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [expandedId, setExpandedId] = useState(null);
+  const navigation = useNavigation();
 
   const loadData = async (isRefreshing = false) => {
     try {
@@ -117,7 +119,13 @@ export default function MemoScreen() {
       {/* Header */}
       <View style={styles.header}>
         <View style={styles.headerLeft}>
-          <MaterialCommunityIcons name="notebook-outline" size={22} color="#007bff" />
+          <TouchableOpacity
+            onPress={() => navigation.goBack()}
+            style={styles.backBtn}
+            activeOpacity={0.7}
+            >
+              <MaterialCommunityIcons name="chevron-left" size={22} color="#ffffff" />
+            </TouchableOpacity>
           <Text style={styles.headerTitle}>Memos</Text>
         </View>
         <View style={styles.countBadge}>
@@ -149,6 +157,7 @@ const styles = StyleSheet.create({
   header: { backgroundColor: '#fff', paddingHorizontal: 16, paddingVertical: 10, borderBottomWidth: 1, borderBottomColor: '#e0e0e0', flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', elevation: 2, shadowColor: '#000', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.08, shadowRadius: 2, },
   headerLeft: { flexDirection: 'row', alignItems: 'center', gap: 6 },
   headerTitle: { fontFamily: 'Poppins-Bold', fontSize: 20, color: '#222' },
+  backBtn: { marginRight: 4, padding: 4, backgroundColor: '#2563eb', borderRadius: 8, },
   countBadge: { backgroundColor: '#e3f2fd', paddingHorizontal: 10, paddingVertical: 3, borderRadius: 12, },
   countText: { fontFamily: 'Poppins-Medium', fontSize: 12, color: '#007bff' },
   // List
