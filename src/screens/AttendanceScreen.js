@@ -9,6 +9,7 @@ import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import { fetchAttendanceRecords } from '../Services/attendanceServices';
 import AttendanceItem from '../components/AttendanceItem';
 import CameraModal from '../components/CameraModal';
+import DateRangePicker from '../components/DateRangePicker';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 const { width, height } = Dimensions.get('window');
@@ -40,8 +41,12 @@ export default function AttendanceScreen() {
 
     const navigation = useNavigation();
 
+    // custom date range states
+    const [customDateRange, setCustomDateRange] = useState({ fromDate: null, toDate: null });
+    const [showDatePicker, setShowDatePicker] = useState(false);
+
     // Data Loading Logic
-    const loadAttendance = async (timeFrame, isRefreshing = false) => {
+    const loadAttendance = async (timeFrame, isRefreshing = false, customRange = null) => {
         if (isRefreshing) {
             setRefreshing(true);
         } else {
@@ -51,7 +56,11 @@ export default function AttendanceScreen() {
         }
         
         try {
-            const response = await fetchAttendanceRecords(timeFrame);
+            const response = await fetchAttendanceRecords(
+                timeFrame,
+                customRange?.fromDate ?? null,
+                customRange?.toDate ?? null
+            );
             
             if (response && Array.isArray(response.attendance)) {
 
@@ -66,7 +75,6 @@ export default function AttendanceScreen() {
                 setAttendanceData([]);
             }
         } catch (error) {
-            console.error("Attendance Load Error:", error);
             Toast.show({ 
                 type: 'error', 
                 text1: 'Attendance History Failed to Load', 
@@ -81,19 +89,52 @@ export default function AttendanceScreen() {
 
     // Pull to refresh handler
     const onRefresh = useCallback(() => {
-        loadAttendance(selectedTimeFrame, true);
-    }, [selectedTimeFrame]);
+        loadAttendance(selectedTimeFrame, true, selectedTimeFrame === 'custom' ? customDateRange : null);
+    }, [selectedTimeFrame, customDateRange]);
 
     // Load data on component mount, filter change, and focus
     useFocusEffect(
         useCallback(() => {
+        if (selectedTimeFrame === 'custom') {
+            // Only load if both dates are actually available
+            if (customDateRange.fromDate && customDateRange.toDate) {
+                loadAttendance('custom', false, customDateRange);
+            }
+        } else {
             loadAttendance(selectedTimeFrame);
-        }, [selectedTimeFrame])
+        }
+    }, [selectedTimeFrame, customDateRange])
     );
+
+    // New handler — intercepts 'custom' tap to open date picker instead of directly setting selectedTimeFrame
+    const handleFilterPress = (value) => {
+        if (value === 'custom') {
+            // Reset previous custom range and open date picker
+            setCustomDateRange({ fromDate: null, toDate: null });
+            setShowDatePicker(true);
+            return;
+        }
+        setSelectedTimeFrame(value);
+    };
+    
+    // new handler - called when user picks dates in DateRangePicker
+    const handleCustomDateChange = (range) => {
+        setCustomDateRange(range);
+        if (range.fromDate && range.toDate) {
+            setSelectedTimeFrame('custom');
+            setShowDatePicker(false);
+            loadAttendance('custom', false, range);
+        }
+    };
 
     // Handle Android hardware back button
     useEffect(() => {
         const backHandler = BackHandler.addEventListener('hardwareBackPress', () => {
+            // also close date picker on back press
+            if (showDatePicker) {
+                setShowDatePicker(false);
+                return true;
+            }
             if (modalVisible) {
                 setModalVisible(false);
                 return true; // Prevent default behavior
@@ -101,7 +142,7 @@ export default function AttendanceScreen() {
             return false; // Let default behavior happen (go back)
         });
         return () => backHandler.remove();
-    }, [modalVisible]);
+    }, [modalVisible, showDatePicker]);
 
     // Render action button with Android ripple effect
     const renderActionButton = (label, action) => (
@@ -148,7 +189,7 @@ export default function AttendanceScreen() {
                 {TIME_FRAMES.map(filter => (
                     <TouchableNativeFeedback
                         key={filter.value}
-                        onPress={() => setSelectedTimeFrame(filter.value)}
+                        onPress={() => handleFilterPress(filter.value)}
                         disabled={isLoading}
                         background={TouchableNativeFeedback.Ripple('#00000020', true)}
                     >
@@ -166,7 +207,10 @@ export default function AttendanceScreen() {
                                 ]}
                                 numberOfLines={1}
                             >
-                                {filter.label}
+                                {filter.value === 'custom' && selectedTimeFrame === 'custom' && customDateRange.fromDate
+                                    ? `${customDateRange.fromDate} → ${customDateRange.toDate}`
+                                    : filter.label
+                                }
                             </Text>
                         </View>
                     </TouchableNativeFeedback>
@@ -224,7 +268,10 @@ export default function AttendanceScreen() {
                     }
                 >
                     <Text style={styles.noRecordsText}>
-                        No records found for the selected time frame.
+                        {selectedTimeFrame === 'custom' && !customDateRange.fromDate
+                            ? 'Please select a custom date range.'
+                            : 'No records found for the selected time frame.'
+                        }
                     </Text>
                 </ScrollView>
             )}
@@ -251,6 +298,16 @@ export default function AttendanceScreen() {
                 }}
                 onClose={() => setModalVisible(false)}
             />
+
+            {showDatePicker && (
+                <DateRangePicker
+                    value={customDateRange}
+                    onChange={handleCustomDateChange}
+                    allowRange={true}
+                    hideTrigger={true}
+                    autoOpen={true}
+                />
+            )}
              
             <Toast />
         </SafeAreaView>
