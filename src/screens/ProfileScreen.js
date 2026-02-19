@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { View, Text, ActivityIndicator, StyleSheet, Image, TouchableOpacity, Linking, ScrollView, Pressable, ToastAndroid, Platform, Alert, StatusBar } from 'react-native';
 import { useDashboard } from "../context/DashboardContext"; 
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
+import { useNavigation } from '@react-navigation/native';
 
 // Compact Info Card Component (2-column grid)
 const InfoCard = ({ icon, label, value }) => (
@@ -104,6 +105,7 @@ export default function ProfileScreen() {
   
   const [isCurrentExpanded, setIsCurrentExpanded] = useState(false);
   const [isPermanentExpanded, setIsPermanentExpanded] = useState(false);
+  const navigation = useNavigation();
 
   if (loading) {
     return (
@@ -153,6 +155,17 @@ export default function ProfileScreen() {
         contentContainerStyle={styles.scrollContent}
       >
         
+        {/* Header Section */}
+        <View style={styles.header}>
+          <TouchableOpacity
+            onPress={() => navigation.goBack()}
+            style={styles.backBtn}
+            activeOpacity={0.7}
+            >
+              <MaterialCommunityIcons name="chevron-left" size={22} color="#ffffff" />
+            </TouchableOpacity>
+            <Text style={styles.headerTitle}>Profile info</Text>
+        </View>
         {/* Minimal Profile Header - NO EXTRA SPACE */}
         <View style={styles.profileHeader}>
           <Image
@@ -258,6 +271,10 @@ const styles = StyleSheet.create({
   errorText: { fontSize: 16, color: '#404040', fontFamily: 'Poppins-Medium', marginTop: 12, },
   container: { flex: 1, },
   scrollContent: { paddingBottom: 20, },
+  // Header
+  header: { flexDirection:'row', paddingHorizontal: 20, paddingTop: 10, paddingBottom: 10, backgroundColor: '#fff', borderBottomWidth: 1, borderBottomColor: '#E8ECF0', gap: 8 },
+  backBtn: { borderWidth: 0.3, marginRight: 4, padding: 4, backgroundColor: "#2563eb", borderRadius: 8, },
+  headerTitle: { fontSize: 17, fontFamily: 'Poppins-SemiBold', color: "#1A1A1A", },
   // MINIMAL Profile Header - Zero extra space
   profileHeader: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#FFFFFF', paddingHorizontal: 16, paddingVertical: 16, borderBottomWidth: 1, borderBottomColor: '#F0F0F0', },
   avatar: { width: 64, height: 64, borderRadius: 32, backgroundColor: '#E8E8E8', borderWidth: 2, borderColor: '#0078D4', },
