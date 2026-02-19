@@ -16,8 +16,7 @@ const EMPLOYEE_LOGOUT_ENDPOINT = '/employeeLogout';
 
 const buildAttendanceFormData = async (actionType, localImagePath) => {
     // NOTE: If getUserData is in utils/storage, change the import above.
-    const userData = await getUserData(); 
-    console.log('userData:', userData);
+    const userData = await getUserData();
 
     if (!userData || !userData.email || userData.email === 'null' || !userData.branchCode || userData.branchCode === 'null') {
         throw new Error("Missing or invalid user data (email or branchCode)");
@@ -52,7 +51,7 @@ const buildAttendanceFormData = async (actionType, localImagePath) => {
 /**
  * Fetches attendance history using a specific timeframe filter (GET request).
  */
-export const fetchAttendanceRecords = async (timeFrame, page = 0, size = 10) => {
+export const fetchAttendanceRecords = async (timeFrame, fromDate = null, toDate = null) => {
     try {
         const userData = await getUserData();
 
@@ -60,17 +59,24 @@ export const fetchAttendanceRecords = async (timeFrame, page = 0, size = 10) => 
             throw new Error("Missing user data required for API call.");
         }
 
-        const params = {
+        // Build query string manually to avoid Axios serialization issues
+        const queryParams = new URLSearchParams({
             empId: userData.empId,
             role: userData.role,
             email: userData.email,
             timeFrame: timeFrame,
-            page: page,
-            size: size,
-        };
+            page: 0,
+            size: 10,
+        });
 
-        // Use the imported apiClient here
-        const response = await apiClient.get(ATTENDANCE_HISTORY_ENDPOINT, { params });
+        if (timeFrame === 'custom' && fromDate && toDate) {
+            queryParams.append('customStartDate', fromDate);
+            queryParams.append('customEndDate', toDate);
+        }
+
+        const response = await apiClient.get(
+            `${ATTENDANCE_HISTORY_ENDPOINT}?${queryParams.toString()}`
+        );
         return response.data;
 
     } catch (error) {
