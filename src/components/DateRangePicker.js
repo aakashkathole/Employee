@@ -4,7 +4,7 @@ import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityI
 import CalendarPicker from 'react-native-calendar-picker';
 import moment from 'moment';
 
-export default function DateRangePicker({ onChange, allowRange = true, value, duration = 'Full Leave' }) {
+export default function DateRangePicker({ onChange, allowRange = true, value, duration = 'Full Leave', hideTrigger = false, autoOpen = false }) {
   
   const [visible, setVisible] = useState(false);
   const closeTimer = useRef(null);
@@ -23,6 +23,13 @@ export default function DateRangePicker({ onChange, allowRange = true, value, du
     }
     prevHasBothRef.current = hasBoth;
   }, [value, visible, allowRange]);
+
+  // Auto open when autoOpen is true
+  useEffect(() => {
+    if (autoOpen) {
+      setVisible(true);
+    }
+  }, [autoOpen]);
 
   // delay to allow animation to be visible
   const closeWithDelay = () => {
@@ -79,17 +86,19 @@ export default function DateRangePicker({ onChange, allowRange = true, value, du
 
   return (
     <View style={styles.container}>
-      {/* Trigger */}
-      <TouchableOpacity
-        style={styles.pickerTrigger}
-        onPress={() => {
-          tempRangeRef.current = { start: null, end: null };
-          setVisible(true);
-        }}
-      >
-        <Text style={styles.valueText}>{displayText}</Text>
-        <MaterialCommunityIcons name="chevron-down" size={24} color="#000080" />
-      </TouchableOpacity>
+      {/* Trigger — hidden when hideTrigger is true */}
+      {!hideTrigger && (
+        <TouchableOpacity
+          style={styles.pickerTrigger}
+          onPress={() => {
+            tempRangeRef.current = { start: null, end: null };
+            setVisible(true);
+          }}
+        >
+          <Text style={styles.valueText}>{displayText}</Text>
+          <MaterialCommunityIcons name="chevron-down" size={24} color="#000080" />
+        </TouchableOpacity>
+      )}
 
       {/* Modal */}
       <Modal visible={visible} transparent animationType="slide" onRequestClose={() => setVisible(false)}>
