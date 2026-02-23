@@ -1,8 +1,91 @@
 import { StyleSheet, Text, View, TouchableOpacity, ScrollView, ActivityIndicator, RefreshControl, Modal, TextInput, Alert } from 'react-native';
 import React, { useEffect, useState } from 'react';
 import { useNavigation } from '@react-navigation/native';
-import { getFeedBack, createFeedBack, deleteFeedBack, updateFeedBack } from '../Services/feedbackService';
+import { getFeedBack, createFeedBack, deleteFeedBack, updateFeedBack, getDepartments } from '../Services/feedbackService';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
+
+// ✅ OUTSIDE main component
+const DepartmentDropdown = ({ value, onSelect, show, setShow, departments }) => (
+  <View style={{ flex: 1 }}>
+    <TouchableOpacity
+      style={[styles.inlineInput, styles.dropdownToggle, show && styles.inputFocused]}
+      onPress={() => setShow(prev => !prev)}
+    >
+      <Text style={value ? styles.dropdownSelectedText : styles.dropdownPlaceholder} numberOfLines={1}>
+        {value || 'Department *'}
+      </Text>
+      <MaterialCommunityIcons name={show ? 'chevron-up' : 'chevron-down'} size={16} color="#007bff" />
+    </TouchableOpacity>
+    {show && (
+      <View style={styles.dropdownList}>
+        {departments.map((dept, index) => (
+          <TouchableOpacity
+            key={index}
+            style={[
+              styles.dropdownItem,
+              value === dept && styles.dropdownItemSelected,
+              index === departments.length - 1 && { borderBottomWidth: 0 }
+            ]}
+            onPress={() => { onSelect(dept); setShow(false); }}
+          >
+            <Text style={[styles.dropdownItemText, value === dept && styles.dropdownItemTextSelected]}>
+              {dept}
+            </Text>
+            {value === dept && <MaterialCommunityIcons name="check" size={14} color="#007bff" />}
+          </TouchableOpacity>
+        ))}
+      </View>
+    )}
+  </View>
+);
+
+// ✅ OUTSIDE main component
+const FeedbackForm = ({ formState, setFormState, showDept, setShowDept, departments }) => (
+  <>
+    <View style={styles.inputRow}>
+      <TextInput
+        placeholder="Name *"
+        style={[styles.inlineInput, { flex: 1, marginRight: 6 }]}
+        value={formState.name}
+        onChangeText={v => setFormState(prev => ({ ...prev, name: v }))}
+      />
+      <DepartmentDropdown
+        value={formState.department}
+        onSelect={dept => setFormState(prev => ({ ...prev, department: dept }))}
+        show={showDept}
+        setShow={setShowDept}
+        departments={departments}
+      />
+    </View>
+
+    <TextInput
+      placeholder="Subject *"
+      style={styles.fullInput}
+      value={formState.subject}
+      onChangeText={v => setFormState(prev => ({ ...prev, subject: v }))}
+    />
+
+    <View>
+      <TextInput
+        placeholder="Description *"
+        style={[styles.fullInput, styles.textArea]}
+        multiline
+        maxLength={200}
+        value={formState.description}
+        onChangeText={v => setFormState(prev => ({ ...prev, description: v }))}
+      />
+      <Text style={styles.charCount}>{formState.description.length}/200</Text>
+    </View>
+
+    <TextInput
+      placeholder="Remark (optional)"
+      style={styles.fullInput}
+      value={formState.remark}
+      onChangeText={v => setFormState(prev => ({ ...prev, remark: v }))}
+    />
+  </>
+);
 
 export default function FeedbackScreen() {
   const navigation = useNavigation();
@@ -10,27 +93,34 @@ export default function FeedbackScreen() {
   const [refreshing, setRefreshing] = useState(false);
   const [feedbackList, setFeedbackList] = useState([]);
   const [expandedId, setExpandedId] = useState(null);
+  const [departments, setDepartments] = useState([]);
 
   // Create Modal
   const [modalVisible, setModalVisible] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [form, setForm] = useState({ name: '', department: '', subject: '', description: '', remark: '' });
+  const [showCreateDeptDropdown, setShowCreateDeptDropdown] = useState(false);
 
   // Edit Modal
   const [editModalVisible, setEditModalVisible] = useState(false);
   const [editingItem, setEditingItem] = useState(null);
   const [editForm, setEditForm] = useState({ name: '', department: '', subject: '', description: '', remark: '', date: '', status: '' });
   const [updating, setUpdating] = useState(false);
+  const [showEditDeptDropdown, setShowEditDeptDropdown] = useState(false);
 
   useEffect(() => { loadData(); }, []);
 
   const loadData = async (isRefresh = false) => {
     try {
       isRefresh ? setRefreshing(true) : setLoading(true);
-      const response = await getFeedBack();
-      setFeedbackList(response || []);
+      const [feedbackResponse, departmentsResponse] = await Promise.all([
+        getFeedBack(),
+        getDepartments(),
+      ]);
+      setFeedbackList(feedbackResponse || []);
+      setDepartments(departmentsResponse?.map(d => d.department) || []);
     } catch (e) {
-      console.log('Error fetching feedback:', e);
+      console.log('Error fetching data:', e);
     } finally {
       setLoading(false);
       setRefreshing(false);
@@ -38,14 +128,19 @@ export default function FeedbackScreen() {
   };
 
   const submitFeedback = async () => {
-    if (!form.name || !form.department || !form.subject || !form.description) return;
+    if (!form.name || !form.department || !form.subject || !form.description) {
+      Alert.alert("Validation", "Please fill in all required fields marked with *");
+      return;
+    }
     try {
       setSubmitting(true);
       await createFeedBack(form);
       setModalVisible(false);
+      setShowCreateDeptDropdown(false);
       setForm({ name: '', department: '', subject: '', description: '', remark: '' });
       loadData(true);
     } catch (e) {
+      Alert.alert("Error", "Failed to submit feedback. Please try again.");
       console.log(e);
     } finally {
       setSubmitting(false);
@@ -85,11 +180,15 @@ export default function FeedbackScreen() {
   };
 
   const handleUpdate = async () => {
-    if (!editForm.name || !editForm.department || !editForm.subject || !editForm.description) return;
+    if (!editForm.name || !editForm.department || !editForm.subject || !editForm.description) {
+      Alert.alert("Validation", "Please fill in all required fields marked with *");
+      return;
+    }
     try {
       setUpdating(true);
       await updateFeedBack(editingItem.id, editForm);
       setEditModalVisible(false);
+      setShowEditDeptDropdown(false);
       setEditingItem(null);
       loadData(true);
     } catch (e) {
@@ -101,19 +200,6 @@ export default function FeedbackScreen() {
   };
 
   const toggleExpand = (id) => setExpandedId(prev => prev === id ? null : id);
-
-  const renderFormFields = (formState, setFormState, fields) =>
-    fields.map(f => (
-      <TextInput
-        key={f}
-        placeholder={f.charAt(0).toUpperCase() + f.slice(1)}
-        style={styles.input}
-        multiline={f === 'description'}
-        numberOfLines={f === 'description' ? 2 : 1}
-        value={formState[f]}
-        onChangeText={v => setFormState({ ...formState, [f]: v })}
-      />
-    ));
 
   if (loading && !refreshing) return (
     <View style={styles.center}>
@@ -147,8 +233,6 @@ export default function FeedbackScreen() {
             const isExpanded = expandedId === item.id;
             return (
               <TouchableOpacity key={item.id} style={styles.card} onPress={() => toggleExpand(item.id)} activeOpacity={0.85}>
-
-                {/* Row 1 — Name + Status + Date */}
                 <View style={styles.rowBetween}>
                   <View style={styles.rowCenter}>
                     <Text style={styles.name}>{item.name}</Text>
@@ -162,10 +246,8 @@ export default function FeedbackScreen() {
                   </View>
                 </View>
 
-                {/* Row 2 — Subject always visible */}
                 <Text style={styles.subject} numberOfLines={isExpanded ? undefined : 1}>{item.subject}</Text>
 
-                {/* Expanded — Description + Remark + Actions */}
                 {isExpanded && (
                   <>
                     {item.description ? <Text style={styles.description}>{item.description}</Text> : null}
@@ -180,7 +262,6 @@ export default function FeedbackScreen() {
                     </View>
                   </>
                 )}
-
               </TouchableOpacity>
             );
           })
@@ -188,43 +269,121 @@ export default function FeedbackScreen() {
       </ScrollView>
 
       {/* Create Modal */}
-      <Modal visible={modalVisible} transparent animationType="slide" onRequestClose={() => setModalVisible(false)}>
-        <TouchableOpacity style={styles.modalBg} activeOpacity={1} onPress={() => setModalVisible(false)}>
+      <Modal
+        visible={modalVisible}
+        transparent
+        animationType="slide"
+        onRequestClose={() => { setModalVisible(false); setShowCreateDeptDropdown(false); }}
+      >
+        <View style={styles.modalBg}>
           <View style={styles.modalCard}>
-            <Text style={styles.modalTitle}>Submit Feedback</Text>
-            {renderFormFields(form, setForm, ['name', 'department', 'subject', 'description', 'remark'])}
-            <View style={styles.rowBetween}>
-              <TouchableOpacity onPress={() => setModalVisible(false)}>
-                <Text style={styles.cancelText}>Cancel</Text>
-              </TouchableOpacity>
-              <TouchableOpacity onPress={submitFeedback} disabled={submitting} style={[styles.submitButton, submitting && { opacity: 0.6 }]}>
-                {submitting
-                  ? <ActivityIndicator size="small" color="#fff" />
-                  : <Text style={styles.submitTxt}>Submit</Text>}
+            <View style={styles.modalHeader}>
+              <View style={styles.rowCenter}>
+                <MaterialCommunityIcons name="clipboard-text-outline" size={15} color="#000080" />
+                <Text style={styles.modalTitle}> Submit Feedback</Text>
+              </View>
+              <TouchableOpacity onPress={() => { setModalVisible(false); setShowCreateDeptDropdown(false); }}>
+                <MaterialCommunityIcons name="close-circle-outline" size={20} color="#aaa" />
               </TouchableOpacity>
             </View>
+
+            <Text style={styles.requiredNote}>Fields marked * are required</Text>
+
+            <ScrollView
+              showsVerticalScrollIndicator={false}
+              keyboardShouldPersistTaps="handled"
+              contentContainerStyle={{ paddingBottom: 20 }}
+            >
+              <FeedbackForm
+                formState={form}
+                setFormState={setForm}
+                showDept={showCreateDeptDropdown}
+                setShowDept={setShowCreateDeptDropdown}
+                departments={departments}
+              />
+              <View style={styles.modalActions}>
+                <TouchableOpacity
+                  style={styles.cancelButton}
+                  onPress={() => { setModalVisible(false); setShowCreateDeptDropdown(false); }}
+                >
+                  <Text style={styles.cancelText}>Cancel</Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  onPress={submitFeedback}
+                  disabled={submitting}
+                  style={[styles.submitButton, submitting && { opacity: 0.6 }]}
+                >
+                  {submitting
+                    ? <ActivityIndicator size="small" color="#fff" />
+                    : <View style={styles.submitBtnInner}>
+                        <Text style={styles.submitTxt}>Submit</Text>
+                        <MaterialCommunityIcons name="send-outline" size={13} color="#fff" />
+                      </View>
+                  }
+                </TouchableOpacity>
+              </View>
+            </ScrollView>
           </View>
-        </TouchableOpacity>
+        </View>
       </Modal>
 
       {/* Edit Modal */}
-      <Modal visible={editModalVisible} transparent animationType="slide" onRequestClose={() => setEditModalVisible(false)}>
-        <TouchableOpacity style={styles.modalBg} activeOpacity={1} onPress={() => setEditModalVisible(false)}>
+      <Modal
+        visible={editModalVisible}
+        transparent
+        animationType="slide"
+        onRequestClose={() => { setEditModalVisible(false); setShowEditDeptDropdown(false); }}
+      >
+        <View style={styles.modalBg}>
           <View style={styles.modalCard}>
-            <Text style={styles.modalTitle}>Edit Feedback</Text>
-            {renderFormFields(editForm, setEditForm, ['name', 'department', 'subject', 'description', 'remark'])}
-            <View style={styles.rowBetween}>
-              <TouchableOpacity onPress={() => setEditModalVisible(false)}>
-                <Text style={styles.cancelText}>Cancel</Text>
-              </TouchableOpacity>
-              <TouchableOpacity onPress={handleUpdate} disabled={updating} style={[styles.submitButton, updating && { opacity: 0.6 }]}>
-                {updating
-                  ? <ActivityIndicator size="small" color="#fff" />
-                  : <Text style={styles.submitTxt}>Update</Text>}
+            <View style={styles.modalHeader}>
+              <View style={styles.rowCenter}>
+                <MaterialCommunityIcons name="clipboard-edit-outline" size={15} color="#000080" />
+                <Text style={styles.modalTitle}> Edit Feedback</Text>
+              </View>
+              <TouchableOpacity onPress={() => { setEditModalVisible(false); setShowEditDeptDropdown(false); }}>
+                <MaterialCommunityIcons name="close-circle-outline" size={20} color="#aaa" />
               </TouchableOpacity>
             </View>
+
+            <Text style={styles.requiredNote}>Fields marked * are required</Text>
+
+            <ScrollView
+              showsVerticalScrollIndicator={false}
+              keyboardShouldPersistTaps="handled"
+              contentContainerStyle={{ paddingBottom: 20 }}
+            >
+              <FeedbackForm
+                formState={editForm}
+                setFormState={setEditForm}
+                showDept={showEditDeptDropdown}
+                setShowDept={setShowEditDeptDropdown}
+                departments={departments}
+              />
+              <View style={styles.modalActions}>
+                <TouchableOpacity
+                  style={styles.cancelButton}
+                  onPress={() => { setEditModalVisible(false); setShowEditDeptDropdown(false); }}
+                >
+                  <Text style={styles.cancelText}>Cancel</Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  onPress={handleUpdate}
+                  disabled={updating}
+                  style={[styles.submitButton, updating && { opacity: 0.6 }]}
+                >
+                  {updating
+                    ? <ActivityIndicator size="small" color="#fff" />
+                    : <View style={styles.submitBtnInner}>
+                        <Text style={styles.submitTxt}>Update</Text>
+                        <MaterialCommunityIcons name="check-outline" size={13} color="#fff" />
+                      </View>
+                  }
+                </TouchableOpacity>
+              </View>
+            </ScrollView>
           </View>
-        </TouchableOpacity>
+        </View>
       </Modal>
 
     </SafeAreaView>
@@ -261,10 +420,31 @@ const styles = StyleSheet.create({
   emptyText: { textAlign: 'center', marginTop: 50, color: '#999', fontSize: 13 },
   // Modal
   modalBg: { flex: 1, backgroundColor: 'rgba(0,0,0,0.4)', justifyContent: 'flex-end' },
-  modalCard: { backgroundColor: '#fff', padding: 14, borderTopLeftRadius: 22, borderTopRightRadius: 22 },
-  modalTitle: { fontSize: 15, fontFamily: 'Poppins-Medium', marginBottom: 10, color: '#000080', alignSelf: 'center' },
-  input: { borderWidth: 1, borderColor: '#ddd', borderRadius: 12, paddingHorizontal: 10, paddingVertical: 7, marginBottom: 6, fontFamily: 'Poppins-Regular', fontSize: 13 },
-  cancelText: { color: '#000080', fontFamily: 'Poppins-Regular', borderWidth: 0.5, borderRadius: 18, borderColor: '#000080', paddingVertical: 7, paddingHorizontal: 14, fontSize: 13 },
-  submitTxt: { color: '#fff', fontFamily: 'Poppins-Medium', fontSize: 13 },
-  submitButton: { paddingVertical: 7, paddingHorizontal: 14, backgroundColor: '#7cfc00', borderRadius: 18 },
+  modalCard: { backgroundColor: '#fff', paddingHorizontal: 14, paddingTop: 12, paddingBottom: 24, borderTopLeftRadius: 22, borderTopRightRadius: 22, maxHeight: '80%' },
+  modalHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 4 },
+  modalTitle: { fontSize: 14, fontFamily: 'Poppins-SemiBold', color: '#000080' },
+  requiredNote: { fontSize: 10, color: '#aaa', fontFamily: 'Poppins-Regular', marginBottom: 10 },
+  // Form Inputs
+  inputRow: { flexDirection: 'row', alignItems: 'flex-start', marginBottom: 6 },
+  inlineInput: { borderWidth: 1, borderColor: '#ddd', borderRadius: 10, paddingHorizontal: 10, paddingVertical: 7, fontFamily: 'Poppins-Regular', fontSize: 12, backgroundColor: '#fff' },
+  fullInput: { borderWidth: 1, borderColor: '#ddd', borderRadius: 10, paddingHorizontal: 10, paddingVertical: 7, marginBottom: 6, fontFamily: 'Poppins-Regular', fontSize: 12, backgroundColor: '#fff' },
+  inputFocused: { borderColor: '#007bff' },
+  textArea: { height: 60, textAlignVertical: 'top' },
+  charCount: { fontSize: 10, color: '#aaa', fontFamily: 'Poppins-Regular', textAlign: 'right', marginTop: -4, marginBottom: 6 },
+  // Dropdown
+  dropdownToggle: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
+  dropdownPlaceholder: { color: '#aaa', fontFamily: 'Poppins-Regular', fontSize: 12, flex: 1 },
+  dropdownSelectedText: { color: '#333', fontFamily: 'Poppins-Regular', fontSize: 12, flex: 1 },
+  dropdownList: { position: 'absolute', top: 38, left: 0, right: 0, zIndex: 999, borderWidth: 1, borderColor: '#ddd', borderRadius: 10, backgroundColor: '#fff', overflow: 'hidden', elevation: 4, shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.1, shadowRadius: 4 },
+  dropdownItem: { paddingHorizontal: 12, paddingVertical: 8, borderBottomWidth: 1, borderBottomColor: '#f0f0f0', flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
+  dropdownItemSelected: { backgroundColor: '#e3f2fd' },
+  dropdownItemText: { fontSize: 12, color: '#333', fontFamily: 'Poppins-Regular' },
+  dropdownItemTextSelected: { color: '#007bff', fontFamily: 'Poppins-Medium' },
+  // Modal Actions
+  modalActions: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginTop: 8 },
+  cancelButton: { borderWidth: 0.5, borderColor: '#000080', borderRadius: 18, paddingVertical: 8, paddingHorizontal: 20 },
+  cancelText: { color: '#000080', fontFamily: 'Poppins-Regular', fontSize: 12 },
+  submitButton: { flex: 1, marginLeft: 10, backgroundColor: '#7cfc00', borderRadius: 18, paddingVertical: 8, alignItems: 'center', justifyContent: 'center' },
+  submitBtnInner: { flexDirection: 'row', alignItems: 'center', gap: 5 },
+  submitTxt: { color: '#fff', fontFamily: 'Poppins-Medium', fontSize: 12 },
 });
