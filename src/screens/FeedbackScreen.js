@@ -19,6 +19,11 @@ const DepartmentDropdown = ({ value, onSelect, show, setShow, departments }) => 
     </TouchableOpacity>
     {show && (
       <View style={styles.dropdownList}>
+        <ScrollView
+          nestedScrollEnabled={true}
+          keyboardShouldPersistTaps="handled"
+          showsVerticalScrollIndicator={true}
+        >
         {departments.map((dept, index) => (
           <TouchableOpacity
             key={index}
@@ -35,6 +40,7 @@ const DepartmentDropdown = ({ value, onSelect, show, setShow, departments }) => 
             {value === dept && <MaterialCommunityIcons name="check" size={14} color="#007bff" />}
           </TouchableOpacity>
         ))}
+        </ScrollView>
       </View>
     )}
   </View>
@@ -435,7 +441,7 @@ const styles = StyleSheet.create({
   dropdownToggle: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
   dropdownPlaceholder: { color: '#aaa', fontFamily: 'Poppins-Regular', fontSize: 12, flex: 1 },
   dropdownSelectedText: { color: '#333', fontFamily: 'Poppins-Regular', fontSize: 12, flex: 1 },
-  dropdownList: { position: 'absolute', top: 38, left: 0, right: 0, zIndex: 999, borderWidth: 1, borderColor: '#ddd', borderRadius: 10, backgroundColor: '#fff', overflow: 'hidden', elevation: 4, shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.1, shadowRadius: 4 },
+  dropdownList: { position: 'absolute', top: 38, left: 0, right: 0, zIndex: 999, borderWidth: 1, borderColor: '#ddd', borderRadius: 10, backgroundColor: '#fff', overflow: 'hidden', elevation: 4, maxHeight: 180, shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.1, shadowRadius: 4 },
   dropdownItem: { paddingHorizontal: 12, paddingVertical: 8, borderBottomWidth: 1, borderBottomColor: '#f0f0f0', flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
   dropdownItemSelected: { backgroundColor: '#e3f2fd' },
   dropdownItemText: { fontSize: 12, color: '#333', fontFamily: 'Poppins-Regular' },
