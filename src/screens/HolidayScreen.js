@@ -5,6 +5,8 @@ import { View, Text, StyleSheet, Modal, TouchableOpacity, ScrollView, RefreshCon
 import { SafeAreaView } from "react-native-safe-area-context";
 import CalendarPicker from "react-native-calendar-picker";
 import moment from "moment";
+import { useNavigation } from "@react-navigation/native";
+import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 
 import { fetchHolidays } from "../Services/holidayService";
 import Loader from "../components/Loader";
@@ -15,6 +17,7 @@ const HolidayScreen = () => {
   const [refreshing, setRefreshing] = useState(false);
   const [selectedHoliday, setSelectedHoliday] = useState(null);
   const [modalVisible, setModalVisible] = useState(false);
+  const navigation = useNavigation();
 
   // key to reset calendar
   const [calendarKey, setCalendarKey] = useState(Date.now());
@@ -87,6 +90,19 @@ const HolidayScreen = () => {
           />
         }
       >
+        
+        {/* Header section */}
+        <View style={styles.header}>
+          <TouchableOpacity
+            onPress={() => navigation.goBack()}
+            style={styles.backBtn}
+            activeOpacity={0.7}
+            >
+              <MaterialCommunityIcons name="chevron-left" size={22} color="#ffffff" />
+            </TouchableOpacity>
+            <Text style={styles.headerTitle}>Holiday</Text>
+        </View>
+
         {/* calander */}
         <CalendarPicker
           key={calendarKey}
@@ -192,6 +208,10 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
     marginBottom: 10,
   },
+  // Header
+  header: { flexDirection: 'row', paddingHorizontal: 20, paddingTop: 10, paddingBottom: 10, backgroundColor: '#fff', borderBottomWidth: 1, borderBottomColor: '#E8ECF0', gap: 8 },
+  backBtn: { marginRight: 4, padding: 4, backgroundColor: "#2563eb", borderRadius: 8, },
+  headerTitle: { fontSize: 17, fontFamily: 'Poppins-SemiBold', color: '#1A1A1A', marginBottom: 5, },
   closeBtn: {
     marginTop: 15,
     backgroundColor: "#1976D2",
