@@ -1,18 +1,7 @@
 // screens/HolidayScreen.js
 
 import React, { useEffect, useState, useCallback } from "react";
-import {
-  View,
-  Text,
-  StyleSheet,
-  Modal,
-  TouchableOpacity,
-  ScrollView,
-  RefreshControl,
-  Animated,
-  Pressable,
-  Platform,
-} from "react-native";
+import { View, Text, StyleSheet, Modal, TouchableOpacity, ScrollView, RefreshControl, Animated, Pressable, Platform, } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import CalendarPicker from "react-native-calendar-picker";
 import moment from "moment";
@@ -22,7 +11,7 @@ import MaterialCommunityIcons from "react-native-vector-icons/MaterialCommunityI
 import { fetchHolidays } from "../Services/holidayService";
 import Loader from "../components/Loader";
 
-// ─── THEME ───────────────────────────────────────────────────────────────────
+// THEME 
 const COLORS = {
   primary:      "#1976D2",
   primaryDark:  "#1256A0",
@@ -42,7 +31,7 @@ const COLORS = {
   unpaidBg:     "#FEF3C7",
 };
 
-// ─── LEGEND ITEM ─────────────────────────────────────────────────────────────
+//  LEGEND ITEM 
 const LegendItem = ({ color, label }) => (
   <View style={styles.legendItem}>
     <View style={[styles.legendDot, { backgroundColor: color }]} />
@@ -50,9 +39,7 @@ const LegendItem = ({ color, label }) => (
   </View>
 );
 
-// ─── HOLIDAY CARD ─────────────────────────────────────────────────────────────
-// FIX #3: isPast uses isBefore with "day" granularity + startOf("day") for daysLeft
-// FIX #5: removed unused "index" prop
+//  HOLIDAY CARD 
 const HolidayCard = ({ item, onPress }) => {
   const scale    = React.useRef(new Animated.Value(1)).current;
   const isPast   = moment(item.date, "YYYY-MM-DD").isBefore(moment(), "day");
@@ -123,7 +110,7 @@ const HolidayCard = ({ item, onPress }) => {
   );
 };
 
-// ─── SHEET ROW ────────────────────────────────────────────────────────────────
+// SHEET ROW 
 const SheetRow = ({ icon, label, value }) => (
   <View style={styles.sheetRow}>
     <View style={styles.sheetRowLeft}>
@@ -134,7 +121,7 @@ const SheetRow = ({ icon, label, value }) => (
   </View>
 );
 
-// ─── MAIN SCREEN ──────────────────────────────────────────────────────────────
+// MAIN SCREEN 
 const HolidayScreen = () => {
   const [holidays,        setHolidays]        = useState([]);
   const [loading,         setLoading]         = useState(false);
@@ -150,7 +137,6 @@ const HolidayScreen = () => {
   const [calendarKey, setCalendarKey] = useState(Date.now());
   const today = moment().toDate();
 
-  // FIX #4: wrapped in useCallback to satisfy exhaustive-deps
   const loadHolidays = useCallback(async () => {
     try {
       setLoading(true);
@@ -181,7 +167,6 @@ const HolidayScreen = () => {
     }
   };
 
-  // FIX #1: reset animation values before opening so slide plays every time
   const openModal = useCallback((holiday) => {
     slideAnim.setValue(300);
     overlayAnim.setValue(0);
@@ -216,7 +201,7 @@ const HolidayScreen = () => {
     if (holiday) openModal(holiday);
   };
 
-  // ── RENDER ────────────────────────────────────────────────────────────────
+  // RENDER 
   return (
     <SafeAreaView style={styles.safeArea}>
       {loading && <Loader />}
@@ -233,7 +218,7 @@ const HolidayScreen = () => {
           />
         }
       >
-        {/* ── HEADER ── */}
+        {/* HEADER  */}
         <View style={styles.header}>
           <TouchableOpacity
             onPress={() => navigation.goBack()}
@@ -250,7 +235,7 @@ const HolidayScreen = () => {
           </View>
         </View>
 
-        {/* ── ERROR STATE ── */}
+        {/*  ERROR STATE  */}
         {errorMsg && (
           <View style={styles.errorBanner}>
             <MaterialCommunityIcons name="alert-circle-outline" size={18} color={COLORS.danger} />
@@ -261,7 +246,7 @@ const HolidayScreen = () => {
           </View>
         )}
 
-        {/* ── CALENDAR CARD ── */}
+        {/*  CALENDAR CARD  */}
         <View style={styles.calendarCard}>
           <CalendarPicker
             key={calendarKey}
@@ -294,7 +279,7 @@ const HolidayScreen = () => {
             accessibilityLabel="Holiday calendar"
           />
 
-          {/* ── LEGEND ── */}
+          {/*  LEGEND  */}
           <View style={styles.legend}>
             <LegendItem color={COLORS.successLight} label="Today"    />
             <LegendItem color={COLORS.dangerLight}  label="Holiday"  />
@@ -302,7 +287,7 @@ const HolidayScreen = () => {
           </View>
         </View>
 
-        {/* ── UPCOMING HOLIDAYS ── */}
+        {/* UPCOMING HOLIDAYS */}
         <View style={styles.section}>
           <View style={styles.sectionHeader}>
             <MaterialCommunityIcons name="calendar-clock" size={18} color={COLORS.primary} />
@@ -318,14 +303,13 @@ const HolidayScreen = () => {
               <Text style={styles.emptyText}>No upcoming holidays</Text>
             </View>
           ) : (
-            // FIX #5: index removed from map and HolidayCard
             upcomingHolidays.map((item) => (
               <HolidayCard key={item.date} item={item} onPress={openModal} />
             ))
           )}
         </View>
 
-        {/* ── PAST HOLIDAYS ── */}
+        {/*  PAST HOLIDAYS  */}
         {pastHolidays.length > 0 && (
           <View style={[styles.section, { marginBottom: 30 }]}>
             <View style={styles.sectionHeader}>
@@ -335,7 +319,6 @@ const HolidayScreen = () => {
                 <Text style={[styles.countText, { color: COLORS.textSub }]}>{pastHolidays.length}</Text>
               </View>
             </View>
-            {/* FIX #5: index removed */}
             {pastHolidays.map((item) => (
               <HolidayCard key={item.date} item={item} onPress={openModal} />
             ))}
@@ -343,7 +326,7 @@ const HolidayScreen = () => {
         )}
       </ScrollView>
 
-      {/* ── BOTTOM SHEET MODAL ── */}
+      {/*  BOTTOM SHEET MODAL  */}
       <Modal
         transparent
         visible={modalVisible}
@@ -424,368 +407,71 @@ const HolidayScreen = () => {
 
 export default HolidayScreen;
 
-// ─── STYLES ──────────────────────────────────────────────────────────────────
+//  STYLES 
 const styles = StyleSheet.create({
-  safeArea: {
-    flex: 1,
-    backgroundColor: COLORS.bg,
-  },
-  scrollContainer: {
-    paddingBottom: 40,
-  },
-
+  safeArea: { flex: 1, backgroundColor: COLORS.bg, },
+  scrollContainer: { paddingBottom: 40, },
   // Header
-  header: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 12,
-    paddingHorizontal: 16,
-    paddingVertical: 14,
-    backgroundColor: COLORS.surface,
-    borderBottomWidth: 1,
-    borderBottomColor: COLORS.border,
-    ...Platform.select({
-      ios:     { shadowColor: "#000", shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.06, shadowRadius: 4 },
-      android: { elevation: 3 },
-    }),
-  },
-  backBtn: {
-    padding: 6,
-    backgroundColor: COLORS.primary,
-    borderRadius: 10,
-  },
-  headerTitle: {
-    fontSize: 16,
-    fontWeight: "700",
-    color: COLORS.text,
-    lineHeight: 20,
-  },
-  headerSub: {
-    fontSize: 12,
-    color: COLORS.textSub,
-    marginTop: 1,
-  },
-
+  header: { flexDirection: "row", alignItems: "center", gap: 12, paddingHorizontal: 16, paddingVertical: 14, backgroundColor: COLORS.surface, borderBottomWidth: 1, borderBottomColor: COLORS.border, ...Platform.select({ ios:     { shadowColor: "#000", shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.06, shadowRadius: 4 }, android: { elevation: 3 }, }), },
+  backBtn: { padding: 6, backgroundColor: COLORS.primary, borderRadius: 10, },
+  headerTitle: { fontSize: 16, fontWeight: "700", color: COLORS.text, lineHeight: 20, },
+  headerSub: { fontSize: 12, color: COLORS.textSub, marginTop: 1, },
   // Error
-  errorBanner: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 8,
-    margin: 16,
-    padding: 12,
-    backgroundColor: "#FEF2F2",
-    borderRadius: 10,
-    borderWidth: 1,
-    borderColor: "#FECACA",
-  },
-  errorText: {
-    flex: 1,
-    fontSize: 13,
-    color: COLORS.danger,
-  },
-  retryBtn: {
-    paddingHorizontal: 12,
-    paddingVertical: 5,
-    backgroundColor: COLORS.danger,
-    borderRadius: 6,
-  },
-  retryText: {
-    color: "#fff",
-    fontSize: 12,
-    fontWeight: "600",
-  },
-
+  errorBanner: { flexDirection: "row", alignItems: "center", gap: 8, margin: 16, padding: 12, backgroundColor: "#FEF2F2", borderRadius: 10, borderWidth: 1, borderColor: "#FECACA", },
+  errorText: { flex: 1, fontSize: 13, color: COLORS.danger, },
+  retryBtn: { paddingHorizontal: 12, paddingVertical: 5, backgroundColor: COLORS.danger, borderRadius: 6, },
+  retryText: { color: "#fff", fontSize: 12, fontWeight: "600", },
   // Calendar card
-  calendarCard: {
-    margin: 16,
-    backgroundColor: COLORS.surface,
-    borderRadius: 16,
-    paddingVertical: 10,
-    paddingHorizontal: 4,
-    ...Platform.select({
-      ios:     { shadowColor: "#000", shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.07, shadowRadius: 8 },
-      android: { elevation: 3 },
-    }),
-  },
-  calMonthTitle: {
-    fontSize: 15,
-    fontWeight: "700",
-    color: COLORS.text,
-  },
-  calDayLabels: {
-    borderTopWidth: 0,
-    borderBottomWidth: 0,
-  },
-  calNavBtn: {
-    padding: 6,
-    borderRadius: 8,
-    backgroundColor: COLORS.primaryLight,
-  },
-
+  calendarCard: { margin: 16, backgroundColor: COLORS.surface, borderRadius: 16, paddingVertical: 10, paddingHorizontal: 4, ...Platform.select({ ios:     { shadowColor: "#000", shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.07, shadowRadius: 8 }, android: { elevation: 3 }, }), }, 
+  calMonthTitle: { fontSize: 15, fontWeight: "700", color: COLORS.text, }, calDayLabels: { borderTopWidth: 0, borderBottomWidth: 0, },
+  calNavBtn: { padding: 6, borderRadius: 8, backgroundColor: COLORS.primaryLight, },
   // Legend
-  legend: {
-    flexDirection: "row",
-    justifyContent: "center",
-    gap: 18,
-    paddingTop: 12,
-    paddingBottom: 4,
-  },
-  legendItem: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 5,
-  },
-  legendDot: {
-    width: 12,
-    height: 12,
-    borderRadius: 6,
-  },
-  legendLabel: {
-    fontSize: 12,
-    color: COLORS.textSub,
-  },
-
+  legend: { flexDirection: "row", justifyContent: "center", gap: 18, paddingTop: 12, paddingBottom: 4, },
+  legendItem: { flexDirection: "row", alignItems: "center", gap: 5, },
+  legendDot: { width: 12, height: 12, borderRadius: 6, },
+  legendLabel: { fontSize: 12, color: COLORS.textSub, },
   // Section
-  section: {
-    marginHorizontal: 16,
-    marginTop: 4,
-  },
-  sectionHeader: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 6,
-    marginBottom: 12,
-  },
-  sectionTitle: {
-    fontSize: 15,
-    fontWeight: "700",
-    color: COLORS.text,
-    flex: 1,
-  },
-  countBadge: {
-    backgroundColor: COLORS.primaryLight,
-    borderRadius: 12,
-    paddingHorizontal: 8,
-    paddingVertical: 2,
-  },
-  countText: {
-    fontSize: 12,
-    fontWeight: "700",
-    color: COLORS.primary,
-  },
-
+  section: { marginHorizontal: 16, marginTop: 4, },
+  sectionHeader: { flexDirection: "row", alignItems: "center", gap: 6, marginBottom: 12, },
+  sectionTitle: { fontSize: 15, fontWeight: "700", color: COLORS.text, flex: 1, }, 
+  countBadge: { backgroundColor: COLORS.primaryLight, borderRadius: 12, paddingHorizontal: 8, paddingVertical: 2, },
+  countText: { fontSize: 12, fontWeight: "700", color: COLORS.primary, },
   // Holiday card
-  card: {
-    flexDirection: "row",
-    alignItems: "center",
-    backgroundColor: COLORS.surface,
-    borderRadius: 12,
-    marginBottom: 10,
-    overflow: "hidden",
-    ...Platform.select({
-      ios:     { shadowColor: "#000", shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.06, shadowRadius: 4 },
-      android: { elevation: 2 },
-    }),
-  },
-  cardPast: {
-    opacity: 0.65,
-  },
-  cardAccent: {
-    width: 4,
-    alignSelf: "stretch",
-  },
-  dateBadge: {
-    width: 52,
-    alignItems: "center",
-    justifyContent: "center",
-    paddingVertical: 12,
-    marginHorizontal: 10,
-    borderRadius: 10,
-  },
-  dateBadgeDay: {
-    fontSize: 18,
-    fontWeight: "800",
-    lineHeight: 20,
-  },
-  dateBadgeMonth: {
-    fontSize: 11,
-    fontWeight: "600",
-    textTransform: "uppercase",
-    letterSpacing: 0.5,
-  },
-  cardInfo: {
-    flex: 1,
-    paddingVertical: 12,
-  },
-  cardName: {
-    fontSize: 14,
-    fontWeight: "600",
-    color: COLORS.text,
-    marginBottom: 4,
-  },
-  cardMeta: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 5,
-  },
-  cardMetaText: {
-    fontSize: 12,
-    color: COLORS.textSub,
-  },
-  daysLeftText: {
-    fontSize: 11,
-    fontWeight: "700",
-    color: COLORS.primary,
-    backgroundColor: COLORS.primaryLight,
-    paddingHorizontal: 6,
-    paddingVertical: 1,
-    borderRadius: 8,
-  },
-  pastText: {
-    fontSize: 11,
-    color: COLORS.textSub,
-  },
-  todayPill: {
-    backgroundColor: "#D1FAE5",
-    paddingHorizontal: 6,
-    paddingVertical: 1,
-    borderRadius: 8,
-  },
-  todayPillText: {
-    fontSize: 11,
-    fontWeight: "700",
-    color: "#059669",
-  },
-  paidBadge: {
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 8,
-    marginRight: 8,
-  },
-  paidText: {
-    fontSize: 11,
-    fontWeight: "700",
-  },
-
+  card: { flexDirection: "row", alignItems: "center", backgroundColor: COLORS.surface, borderRadius: 12, marginBottom: 10, overflow: "hidden", ...Platform.select({ ios:     { shadowColor: "#000", shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.06, shadowRadius: 4 }, android: { elevation: 2 }, }), },
+  cardPast: { opacity: 0.65, },
+  cardAccent: {  width: 4, alignSelf: "stretch", },
+  dateBadge: { width: 52, alignItems: "center", justifyContent: "center", paddingVertical: 12, marginHorizontal: 10, borderRadius: 10, },
+  dateBadgeDay: {  fontSize: 18, fontWeight: "800", lineHeight: 20, },
+  dateBadgeMonth: { fontSize: 11, fontWeight: "600", textTransform: "uppercase", letterSpacing: 0.5, },
+  cardInfo: { flex: 1, paddingVertical: 12, },
+  cardName: { fontSize: 14, fontWeight: "600", color: COLORS.text, marginBottom: 4, }, 
+  cardMeta: { flexDirection: "row", alignItems: "center", gap: 5, },
+  cardMetaText: { fontSize: 12, color: COLORS.textSub, },
+  daysLeftText: { fontSize: 11, fontWeight: "700", color: COLORS.primary, backgroundColor: COLORS.primaryLight, paddingHorizontal: 6, paddingVertical: 1, borderRadius: 8, },
+  pastText: { fontSize: 11, color: COLORS.textSub, },
+  todayPill: { backgroundColor: "#D1FAE5", paddingHorizontal: 6, paddingVertical: 1, borderRadius: 8, },
+  todayPillText: { fontSize: 11, fontWeight: "700", color: "#059669", }, 
+  paidBadge: { paddingHorizontal: 8, paddingVertical: 4, borderRadius: 8, marginRight: 8, },
+  paidText: { fontSize: 11, fontWeight: "700", },
   // Empty state
-  emptyState: {
-    alignItems: "center",
-    paddingVertical: 32,
-    gap: 8,
-  },
-  emptyText: {
-    fontSize: 14,
-    color: COLORS.textSub,
-  },
-
+  emptyState: { alignItems: "center", paddingVertical: 32, gap: 8, },
+  emptyText: { fontSize: 14, color: COLORS.textSub, }, 
   // Bottom sheet modal
-  modalOverlay: {
-    ...StyleSheet.absoluteFillObject,
-    backgroundColor: "rgba(0,0,0,0.45)",
-  },
-  bottomSheet: {
-    position: "absolute",
-    bottom: 0,
-    left: 0,
-    right: 0,
-    backgroundColor: COLORS.surface,
-    borderTopLeftRadius: 24,
-    borderTopRightRadius: 24,
-    paddingBottom: Platform.OS === "ios" ? 34 : 20,
-    ...Platform.select({
-      ios:     { shadowColor: "#000", shadowOffset: { width: 0, height: -3 }, shadowOpacity: 0.12, shadowRadius: 12 },
-      android: { elevation: 20 },
-    }),
-  },
-  sheetHandle: {
-    width: 40,
-    height: 4,
-    borderRadius: 2,
-    backgroundColor: COLORS.border,
-    alignSelf: "center",
-    marginTop: 12,
-    marginBottom: 4,
-  },
-  sheetHeader: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 10,
-    paddingHorizontal: 20,
-    paddingVertical: 14,
-  },
-  sheetIconWrap: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: COLORS.dangerLight,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  sheetTitle: {
-    flex: 1,
-    fontSize: 17,
-    fontWeight: "700",
-    color: COLORS.text,
-  },
-  sheetCloseBtn: {
-    padding: 6,
-    borderRadius: 20,
-    backgroundColor: COLORS.bg,
-  },
-  sheetDivider: {
-    height: 1,
-    backgroundColor: COLORS.border,
-    marginHorizontal: 20,
-  },
-  sheetBody: {
-    paddingHorizontal: 20,
-    paddingTop: 16,
-    gap: 14,
-  },
-  sheetRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-  },
-  sheetRowLeft: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 8,
-  },
-  sheetRowLabel: {
-    fontSize: 14,
-    color: COLORS.textSub,
-    fontWeight: "500",
-  },
-  sheetRowValue: {
-    fontSize: 14,
-    color: COLORS.text,
-    fontWeight: "600",
-  },
-  paidBadgeLarge: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 5,
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 20,
-  },
-  paidBadgeLargeText: {
-    fontSize: 13,
-    fontWeight: "700",
-  },
-  sheetCloseFullBtn: {
-    margin: 20,
-    marginBottom: 8,
-    backgroundColor: COLORS.primary,
-    paddingVertical: 14,
-    borderRadius: 14,
-    alignItems: "center",
-  },
-  sheetCloseFullText: {
-    color: "#fff",
-    fontSize: 16,
-    fontWeight: "700",
-    letterSpacing: 0.3,
-  },
+  modalOverlay: { ...StyleSheet.absoluteFillObject, backgroundColor: "rgba(0,0,0,0.45)", },
+  bottomSheet: { position: "absolute", bottom: 0, left: 0, right: 0, backgroundColor: COLORS.surface, borderTopLeftRadius: 24, borderTopRightRadius: 24, paddingBottom: Platform.OS === "ios" ? 34 : 20, ...Platform.select({ ios:     { shadowColor: "#000", shadowOffset: { width: 0, height: -3 }, shadowOpacity: 0.12, shadowRadius: 12 }, android: { elevation: 20 }, }), }, 
+  sheetHandle: { width: 40, height: 4, borderRadius: 2, backgroundColor: COLORS.border, alignSelf: "center", marginTop: 12, marginBottom: 4, },
+  sheetHeader: { flexDirection: "row", alignItems: "center", gap: 10, paddingHorizontal: 20, paddingVertical: 14, },
+  sheetIconWrap: { width: 40, height: 40, borderRadius: 20, backgroundColor: COLORS.dangerLight, alignItems: "center", justifyContent: "center", },
+  sheetTitle: { flex: 1, fontSize: 17, fontWeight: "700", color: COLORS.text, },
+  sheetCloseBtn: { padding: 6, borderRadius: 20, backgroundColor: COLORS.bg, },
+  sheetDivider: { height: 1, backgroundColor: COLORS.border, marginHorizontal: 20, },
+  sheetBody: { paddingHorizontal: 20, paddingTop: 16, gap: 14, },
+  sheetRow: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", },
+  sheetRowLeft: { flexDirection: "row", alignItems: "center", gap: 8, },
+  sheetRowLabel: { fontSize: 14, color: COLORS.textSub, fontWeight: "500", },
+  sheetRowValue: { fontSize: 14, color: COLORS.text, fontWeight: "600", },
+  paidBadgeLarge: { flexDirection: "row", alignItems: "center", gap: 5, paddingHorizontal: 12, paddingVertical: 6,borderRadius: 20, },
+  paidBadgeLargeText: { fontSize: 13, fontWeight: "700", },
+  sheetCloseFullBtn: { margin: 20, marginBottom: 8, backgroundColor: COLORS.primary, paddingVertical: 14, borderRadius: 14, alignItems: "center", },
+  sheetCloseFullText: { color: "#fff", fontSize: 16, fontWeight: "700", letterSpacing: 0.3, },
 });
