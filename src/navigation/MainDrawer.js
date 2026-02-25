@@ -5,9 +5,7 @@ import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityI
 import { useAuth } from '../context/AuthContext';
 
 // screens
-import DashboardScreen from '../screens/DashboardScreen';
-import ProfileScreen from '../screens/ProfileScreen';
-import AttendanceStackNavigator from "./AttendanceStackNavigator";
+import BottomTabNavigator from './BottomTabNavigator';
 import SalaryScreen from '../screens/SalaryScreen';
 import LeaveTabNavigator from "../navigation/LeaveTabNavigator";
 import MemoScreen from '../screens/MemoScreen';
@@ -82,42 +80,16 @@ export default function MainDrawer() {
       }}
     >
       <Drawer.Screen
-        name="Dashboard"
-        component={DashboardScreen}
+        name="Home"
+        component={BottomTabNavigator}
         options={{
           drawerIcon: ({ color, size }) => (
-            <MaterialCommunityIcons name="view-dashboard-outline" color={color} size={size} />
+            <MaterialCommunityIcons name="home-outline" color={color} size={size} />
           ),
           drawerLabelStyle: {
             fontFamily: 'Poppins-Medium',
             fontSize: 16,
           }
-        }}
-      />
-      <Drawer.Screen
-        name="Profile"
-        component={ProfileScreen}
-        options={{
-          drawerIcon: ({ color, size }) => (
-            <MaterialCommunityIcons name="account-outline" color={color} size={size} />
-          ),
-          drawerLabelStyle: {
-            fontFamily: 'Poppins-Medium',
-            fontSize: 16,
-          }
-        }}
-      />
-      <Drawer.Screen
-        name="Attendance"
-        component={AttendanceStackNavigator}
-        options={{
-          drawerIcon: ({ color, size }) => (
-            <MaterialCommunityIcons name="calendar-check-outline" color={color} size={size} />
-          ),
-          drawerLabelStyle: {
-            fontFamily: 'Poppins-Medium',
-            fontSize: 16,
-          },
         }}
       />
       <Drawer.Screen
