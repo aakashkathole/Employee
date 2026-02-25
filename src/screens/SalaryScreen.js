@@ -7,6 +7,7 @@ import MaterialCommunityIcons from "react-native-vector-icons/MaterialCommunityI
 import { fetchSalaries, getBranchAddress } from "../Services/salaryServices";
 import { generateHTML, monthName, imageUrlToBase64 } from "../utils/salaryUtils";
 import { requestAllPermissions, openAppSettings } from "../utils/permissions";
+import { useNavigation } from "@react-navigation/native";
 
 if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental) {
   UIManager.setLayoutAnimationEnabledExperimental(true);
@@ -213,6 +214,7 @@ const SalaryScreen = () => {
   const [slipHtml, setSlipHtml]           = useState('');
   const [slipItem, setSlipItem]           = useState(null);
   const webViewRef = useRef(null);
+  const navigation = useNavigation();
 
   const loadSalaries = async (month = null, year = null, isRefresh = false) => {
     try {
@@ -362,6 +364,13 @@ const SalaryScreen = () => {
     <View style={s.container}>
       {/*  Filter Bar  */}
       <View style={s.filterBar}>
+        <TouchableOpacity
+          onPress={() => navigation.goBack()}
+          style={s.backBTN}
+          activeOpacity={0.7}
+          >
+            <MaterialCommunityIcons name="chevron-left" size={22} color="#ffffff" />
+        </TouchableOpacity>
         <TouchableOpacity style={s.filterChip} onPress={() => setMonthModal(true)}>
           <MaterialCommunityIcons
             name="calendar-month-outline"
@@ -562,6 +571,7 @@ const s = StyleSheet.create({
   loadingText: { marginTop: 10, fontSize: 16, color: '#666' },
   // Filter Bar
   filterBar: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 12, paddingVertical: 8, backgroundColor: '#fff', borderBottomWidth: 1, borderBottomColor: '#e0e0e0', gap: 6, },
+  backBTN: { borderWidth: 0.3, marginRight: 4, padding: 4, backgroundColor: "#2563eb", borderRadius: 8,  },
   filterChip: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 10, paddingVertical: 6, backgroundColor: '#f5f5f5', borderRadius: 20, },
   chipText: { fontSize: 13, color: '#6b7280', fontWeight: '500' },
   chipActive: { color: '#1565C0', fontWeight: '700' },
