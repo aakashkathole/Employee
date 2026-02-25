@@ -4,6 +4,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { View, Text, StyleSheet, FlatList, ScrollView, TouchableOpacity, TouchableNativeFeedback, ActivityIndicator, Dimensions, BackHandler, StatusBar, RefreshControl } from 'react-native';
 import Toast from 'react-native-toast-message';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
+import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 
 // Import services and components
 import { fetchAttendanceRecords } from '../Services/attendanceServices';
@@ -85,7 +86,7 @@ export default function AttendanceScreen() {
             setIsLoading(false);
             setRefreshing(false);
         }
-    };
+    }; 
 
     // Pull to refresh handler
     const onRefresh = useCallback(() => {
@@ -168,14 +169,13 @@ export default function AttendanceScreen() {
             <StatusBar backgroundColor="#fff" barStyle="dark-content" />
             
             <View style={styles.headerContainer}>
-                <TouchableNativeFeedback 
-                    onPress={() => navigation.goBack()}
-                    background={TouchableNativeFeedback.Ripple('#00000020', true)}
-                >
-                    <View style={styles.backButton}>
-                        <Text style={styles.backButtonText}>← Back</Text>
-                    </View>
-                </TouchableNativeFeedback>
+                <TouchableOpacity
+                 onPress={() => navigation.goBack()}
+                 style={styles.backBtn}
+                 activeOpacity={0.7}
+                 >
+                    <MaterialCommunityIcons name="chevron-left" size={22} color="#ffffff" />
+                </TouchableOpacity>
                 <Text style={styles.header}>Attendance</Text>
             </View>
             
@@ -320,6 +320,7 @@ const styles = StyleSheet.create({
     backButton: { marginRight: 10, padding: 8, borderRadius: 8, },
     backButtonText: { fontSize: 14, color: '#007bff', fontFamily: 'Poppins-SemiBold', },
     header: { fontSize: 20, fontFamily: 'Poppins-SemiBold', color: '#333', flex: 1, },
+    backBtn: { borderWidth: 0.3, marginRight: 12, padding: 4, backgroundColor: "#2563eb", borderRadius: 8, },
     // Filters
     filtersContainer: { maxHeight: 36, marginBottom: 15, },
     filtersContentContainer: { paddingHorizontal: 8, alignItems: 'center', },
