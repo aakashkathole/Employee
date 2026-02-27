@@ -60,7 +60,7 @@ export default function DashboardScreen({ navigation }) {
 
   return (
     <SafeAreaView style={styles.container}>
-      <AppHeader onMenuPress={handleMenuPress} onProfilePress={() => navigation.navigate('Profile')} />
+      <AppHeader onMenuPress={handleMenuPress} onNotificationPress={() => navigation.navigate('notificationScreen')} />
 
       {loading ? (
         <View style={styles.centerContainer}>

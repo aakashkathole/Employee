@@ -3,7 +3,7 @@ import { View, TouchableOpacity, Image, StyleSheet } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 
-const AppHeader = ({ onMenuPress, onProfilePress }) => {
+const AppHeader = ({ onMenuPress, onNotificationPress }) => {
   return (
     <SafeAreaView>
       <View style={styles.container}>
@@ -22,8 +22,8 @@ const AppHeader = ({ onMenuPress, onProfilePress }) => {
         </View>
 
         
-        <TouchableOpacity onPress={onProfilePress} style={styles.iconButton}>
-          <MaterialCommunityIcons name="account-outline" size={26} color="#000000" />
+        <TouchableOpacity onPress={onNotificationPress} style={styles.iconButton}>
+          <MaterialCommunityIcons name="bell-outline" size={26} color="#000000" />
         </TouchableOpacity>
 
       </View>

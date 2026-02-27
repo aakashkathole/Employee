@@ -5,6 +5,7 @@ import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { useAuth, AUTH_STATES } from '../context/AuthContext';
 import LoginScreen from '../screens/LoginScreen';
 import MainDrawer from './MainDrawer';
+import notificationScreen from '../screens/notificationScreen';
 
 const Stack = createNativeStackNavigator();
 const { width, height } = Dimensions.get('window');
@@ -34,7 +35,10 @@ const RootNavigator = () => {
   return (
     <Stack.Navigator screenOptions={{ headerShown: false, animationEnabled: false }}>
       {isAuthenticated ? (
+        <>
         <Stack.Screen name="MainDrawer" component={MainDrawer} />
+        <Stack.Screen name="notificationScreen" component={notificationScreen} />
+        </>
       ) : (
         <Stack.Screen name="Login" component={LoginScreen} />
       )}
