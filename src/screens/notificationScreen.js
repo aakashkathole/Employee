@@ -5,7 +5,7 @@ import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityI
 import { useNavigation } from '@react-navigation/native';
 import { getBirthdays } from '../Services/notificationService';
 
-// ─── Helpers ────────────────────────────────────────────────────────────────
+// Helpers 
 
 const formatDob = (dob) => {
   if (!dob) return '';
@@ -28,7 +28,7 @@ const getAvatarColor = (name) => {
   return AVATAR_COLORS[code % AVATAR_COLORS.length];
 };
 
-// ─── Sub Components ──────────────────────────────────────────────────────────
+//  Sub Components 
 
 const SectionHeader = ({ icon, label, count }) => (
   <View style={styles.sectionHeader}>
@@ -51,20 +51,22 @@ const BirthdayCard = ({ item }) => (
       <View style={styles.cardRow}>
         <Text style={styles.cardName} numberOfLines={1}>{item.fullName}</Text>
         <View style={styles.dateChip}>
-          <MaterialCommunityIcons name="cake-variant" size={12} color="#2563eb" />
+          <MaterialCommunityIcons name="cake-variant" size={11} color="#2563eb" />
           <Text style={styles.dateText}>{formatDob(item.dob)}</Text>
         </View>
       </View>
-      <Text style={styles.cardSub} numberOfLines={1}>{item.categoryName}</Text>
-      <View style={styles.deptRow}>
-        <MaterialCommunityIcons name="office-building-outline" size={13} color="#6B7280" />
-        <Text style={styles.deptText}>{item.department}</Text>
+      <View style={styles.cardMetaRow}>
+        <MaterialCommunityIcons name="briefcase-outline" size={11} color="#9CA3AF" />
+        <Text style={styles.cardMeta} numberOfLines={1}>{item.categoryName}</Text>
+        <Text style={styles.metaDot}>·</Text>
+        <MaterialCommunityIcons name="office-building-outline" size={11} color="#9CA3AF" />
+        <Text style={styles.cardMeta} numberOfLines={1}>{item.department}</Text>
       </View>
     </View>
   </View>
 );
 
-// ─── Main Screen ─────────────────────────────────────────────────────────────
+//  Main Screen 
 
 export default function NotificationScreen() {
   const navigation = useNavigation();
@@ -121,13 +123,13 @@ export default function NotificationScreen() {
 
     return (
       <>
-        {/* ── Birthdays Section ── */}
+        {/*  Birthdays Section  */}
         <SectionHeader icon="cake-variant-outline" label="Upcoming Birthdays" count={birthdays.length} />
         {birthdays.map((item, index) => (
           <BirthdayCard key={`birthday-${item.fullName}-${index}`} item={item} />
         ))}
 
-        {/* ── Future sections plug in here ── */}
+        {/*  Future sections plug in here  */}
         {/* <SectionHeader icon="bell-outline" label="System Alerts" count={alerts.length} /> */}
         {/* {alerts.map(...)} */}
       </>
@@ -137,7 +139,7 @@ export default function NotificationScreen() {
   return (
     <SafeAreaView style={styles.safeArea}>
 
-      {/* ── Header ── */}
+      {/*  Header  */}
       <View style={styles.header}>
         <TouchableOpacity
           onPress={() => navigation.goBack()}
@@ -154,7 +156,7 @@ export default function NotificationScreen() {
         )}
       </View>
 
-      {/* ── Body ── */}
+      {/*  Body  */}
       <ScrollView
         style={styles.scrollView}
         contentContainerStyle={styles.scrollContent}
@@ -174,166 +176,37 @@ export default function NotificationScreen() {
   );
 }
 
-// ─── Styles ──────────────────────────────────────────────────────────────────
-
+//  Styles 
 const styles = StyleSheet.create({
   safeArea: { flex: 1, backgroundColor: '#F3F4F6' },
-
   // Header
-  header: {
-    flexDirection: 'row',
-    paddingHorizontal: 20,
-    paddingTop: 10,
-    paddingBottom: 10,
-    backgroundColor: '#fff',
-    borderBottomWidth: 1,
-    borderBottomColor: '#E8ECF0',
-    gap: 8,
-    alignItems: 'center',
-  },
-  backBtn: {
-    marginRight: 4,
-    padding: 4,
-    backgroundColor: '#2563eb',
-    borderRadius: 8,
-  },
-  headerTitle: {
-    flex: 1,
-    fontSize: 17,
-    fontFamily: 'Poppins-SemiBold',
-    color: '#1A1A1A',
-  },
-  headerBadge: {
-    backgroundColor: '#2563eb',
-    borderRadius: 12,
-    paddingHorizontal: 8,
-    paddingVertical: 2,
-  },
-  headerBadgeText: {
-    color: '#fff',
-    fontSize: 12,
-    fontFamily: 'Poppins-SemiBold',
-  },
-
+  header: { flexDirection: 'row', paddingHorizontal: 20, paddingTop: 10, paddingBottom: 10, backgroundColor: '#fff', borderBottomWidth: 1, borderBottomColor: '#E8ECF0', gap: 8, alignItems: 'center', },
+  backBtn: { marginRight: 4, padding: 4, backgroundColor: '#2563eb', borderRadius: 8, },
+  headerTitle: { flex: 1, fontSize: 17, fontFamily: 'Poppins-SemiBold', color: '#1A1A1A', },
+  headerBadge: { backgroundColor: '#2563eb', borderRadius: 12, paddingHorizontal: 8, paddingVertical: 2, },
+  headerBadgeText: { color: '#fff', fontSize: 12, fontFamily: 'Poppins-SemiBold', },
   // Scroll
   scrollView: { flex: 1 },
   scrollContent: { padding: 16, paddingBottom: 32, flexGrow: 1 },
-
-  // Section Header
-  sectionHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-    marginBottom: 12,
-    marginTop: 4,
-  },
-  sectionLabel: {
-    flex: 1,
-    fontSize: 14,
-    fontFamily: 'Poppins-SemiBold',
-    color: '#374151',
-  },
-  badge: {
-    backgroundColor: '#DBEAFE',
-    borderRadius: 10,
-    paddingHorizontal: 8,
-    paddingVertical: 1,
-  },
-  badgeText: {
-    color: '#2563eb',
-    fontSize: 12,
-    fontFamily: 'Poppins-SemiBold',
-  },
-
+  // Section Header 
+  sectionHeader: { flexDirection: 'row', alignItems: 'center', gap: 6, marginBottom: 12, marginTop: 4, },
+  sectionLabel: { flex: 1, fontSize: 14, fontFamily: 'Poppins-SemiBold', color: '#374151', },
+  badge: { backgroundColor: '#DBEAFE', borderRadius: 10, paddingHorizontal: 8, paddingVertical: 1, },
+  badgeText: { color: '#2563eb', fontSize: 12, fontFamily: 'Poppins-SemiBold', },
   // Card
-  card: {
-    flexDirection: 'row',
-    backgroundColor: '#fff',
-    borderRadius: 14,
-    padding: 14,
-    marginBottom: 10,
-    alignItems: 'center',
-    gap: 12,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.06,
-    shadowRadius: 4,
-    elevation: 2,
-  },
-  avatar: {
-    width: 46,
-    height: 46,
-    borderRadius: 23,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  avatarText: {
-    color: '#fff',
-    fontSize: 16,
-    fontFamily: 'Poppins-SemiBold',
-  },
-  cardContent: { flex: 1, gap: 2 },
-  cardRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    gap: 8,
-  },
-  cardName: {
-    flex: 1,
-    fontSize: 14,
-    fontFamily: 'Poppins-SemiBold',
-    color: '#111827',
-  },
-  dateChip: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 3,
-    backgroundColor: '#DBEAFE',
-    paddingHorizontal: 7,
-    paddingVertical: 2,
-    borderRadius: 8,
-  },
-  dateText: {
-    fontSize: 11,
-    fontFamily: 'Poppins-Medium',
-    color: '#2563eb',
-  },
-  cardSub: {
-    fontSize: 12,
-    fontFamily: 'Poppins-Regular',
-    color: '#6B7280',
-  },
-  deptRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 4,
-    marginTop: 2,
-  },
-  deptText: {
-    fontSize: 12,
-    fontFamily: 'Poppins-Regular',
-    color: '#6B7280',
-  },
-
+  card: { flexDirection: 'row', backgroundColor: '#fff', borderRadius: 10, paddingHorizontal: 12, paddingVertical: 10, marginBottom: 6, alignItems: 'center', gap: 10, elevation: 1, shadowColor: '#000', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.04, shadowRadius: 2, },
+  avatar: { width: 38, height: 38, borderRadius: 19, alignItems: 'center', justifyContent: 'center', },
+  avatarText: { color: '#fff', fontSize: 13, fontFamily: 'Poppins-SemiBold', },
+  cardContent: { flex: 1, gap: 3 },
+  cardRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 6, },
+  cardName: { flex: 1, fontSize: 13, fontFamily: 'Poppins-SemiBold', color: '#111827', },
+  dateChip: { flexDirection: 'row', alignItems: 'center', gap: 3, backgroundColor: '#DBEAFE', paddingHorizontal: 6, paddingVertical: 2, borderRadius: 6, },
+  dateText: { fontSize: 10, fontFamily: 'Poppins-Medium', color: '#2563eb', },
+  cardMetaRow: { flexDirection: 'row', alignItems: 'center', gap: 4, },
+  cardMeta: { fontSize: 11, fontFamily: 'Poppins-Regular', color: '#9CA3AF', flexShrink: 1, },
+  metaDot: { fontSize: 11, color: '#D1D5DB', },
   // Empty / Error / Loading States
-  centerState: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingTop: 80,
-    gap: 8,
-  },
-  stateTitle: {
-    fontSize: 16,
-    fontFamily: 'Poppins-SemiBold',
-    color: '#374151',
-  },
-  stateText: {
-    fontSize: 13,
-    fontFamily: 'Poppins-Regular',
-    color: '#9CA3AF',
-    textAlign: 'center',
-    paddingHorizontal: 32,
-  },
+  centerState: { flex: 1, alignItems: 'center', justifyContent: 'center', paddingTop: 80, gap: 8, },
+  stateTitle: { fontSize: 16, fontFamily: 'Poppins-SemiBold', color: '#374151', },
+  stateText: { fontSize: 13, fontFamily: 'Poppins-Regular', color: '#9CA3AF', textAlign: 'center', paddingHorizontal: 32, },
 });
