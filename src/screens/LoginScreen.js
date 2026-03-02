@@ -1,8 +1,9 @@
-import React, { useState } from 'react';
-import { StyleSheet, Text, View, TextInput, TouchableOpacity, Image } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { StyleSheet, Text, View, TextInput, TouchableOpacity, BackHandler, TouchableWithoutFeedback, Keyboard } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Toast from 'react-native-toast-message';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
+import NetInfo from '@react-native-community/netinfo';
 import Loader from '../components/Loader';
 import { loginUser } from '../Services/authService';
 import { useAuth } from '../context/AuthContext';
@@ -16,23 +17,56 @@ export default function LoginScreen({ navigation }) {
 
   const isValidEmail = (email) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
 
+  // Back Button: Exit app on Login screen
+  useEffect(() => {
+    const backHandler = BackHandler.addEventListener('hardwareBackPress', () => {
+      BackHandler.exitApp();
+      return true;
+    });
+    return () => backHandler.remove();
+  }, []);
+
   const handleLogin = async () => {
-    if (!email || !password) {
+    if (!email.trim() || !password.trim()) {
       Toast.show({
         type: 'error',
         text1: 'Please enter both email and password.',
         position: 'top',
-        visibilityTime: 1000
+        visibilityTime: 2500
       });
       return;
     }
 
-    if (!isValidEmail(email)) {
+    if (!isValidEmail(email.trim())) {
       Toast.show({
         type: 'error',
         text1: 'Please enter a valid email address.',
         position: 'top',
-        visibilityTime: 1000
+        visibilityTime: 2500
+      });
+      return;
+    }
+
+    // Password Validation (uncomment before production launch) 
+    // if (password.length < 6) {
+    //   Toast.show({
+    //     type: 'error',
+    //     text1: 'Password must be at least 6 characters.',
+    //     position: 'top',
+    //     visibilityTime: 2500,
+    //   });
+    //   return;
+    // }
+
+    // Internet Check 
+    const netState = await NetInfo.fetch();
+    if (!netState.isConnected) {
+      Toast.show({
+        type: 'error',
+        text1: '📶 No Internet Connection',
+        text2: 'Please check your WiFi or mobile data.',
+        position: 'top',
+        visibilityTime: 2500
       });
       return;
     }
@@ -40,8 +74,7 @@ export default function LoginScreen({ navigation }) {
     setLoading(true);
 
     try {
-      const data = await loginUser(email, password);
-      console.log('Login Response:', data);
+      const data = await loginUser(email.trim(), password);
 
       if (data?.token) {
         const apiUserData = data.data;
@@ -56,51 +89,73 @@ export default function LoginScreen({ navigation }) {
           fullName: apiUserData.fullName,
         };
 
-        await login(data.token, userToSave);
+        const success = await login(data.token, userToSave);
 
-        Toast.show({
-          type: 'customSuccessToast',
-          text1: 'Login successful!',
-          position: 'top',
-          visibilityTime: 1500
-        });
+        if (success) {
+          Toast.show({
+            type: 'customSuccessToast',
+            text1: 'Login successful!',
+            position: 'top',
+            visibilityTime: 1500
+          });
+        } else {
+          Toast.show({
+            type: 'error',
+            text1: 'Something went wrong. Please try again.',
+            position: 'top',
+            visibilityTime: 2500
+          });
+        }
 
       } else {
         Toast.show({
           type: 'error',
-          text1: data.message || 'Invalid email or password',
+          text1: data.message || 'Invalid email or password.',
+          text2: 'Please check your credentials and try again.',
           position: 'top',
-          visibilityTime: 1000
+          visibilityTime: 2500
         });
       }
+
     } catch (error) {
-      console.log("LOGIN ERROR FULL:", error);
-      Toast.show({
-        type: 'error',
-        text1: error.message || 'Login failed. Try again.',
-        position: 'top',
-        visibilityTime: 1000
-      });
+      const isNetworkError =
+        error.message === 'Network request failed' ||
+        error.message === 'Failed to fetch' ||
+        error.message?.toLowerCase().includes('network');
+
+      if (isNetworkError) {
+        Toast.show({
+          type: 'error',
+          text1: '📶 No Internet Connection',
+          text2: 'Please check your connection and try again.',
+          position: 'top',
+          visibilityTime: 2500
+        });
+      } else {
+        Toast.show({
+          type: 'error',
+          text1: error.message || 'Invalid email or password.',
+          text2: 'Please check your credentials and try again.',
+          position: 'top',
+          visibilityTime: 2500
+        });
+      }
     } finally {
       setLoading(false);
     }
   };
 
   const handleForgotPassword = () => {
-    navigation.navigate('ForgotPassword'); 
+    navigation.navigate('ForgotPassword');
   };
 
   return (
-    <SafeAreaView style={styles.container}>
+    <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+      <SafeAreaView style={styles.container}>
         <View style={styles.card}>
           <View style={styles.header}>
-            <Image
-              source={require('../../assets/images/logo-DlE65z4X.jpg')}
-              style={styles.logo}
-            />
             <View>
               <Text style={styles.welcomeback}>Welcome Back</Text>
-              <Text style={styles.signintext}>Sign in to your Employee account</Text>
             </View>
           </View>
 
@@ -115,8 +170,9 @@ export default function LoginScreen({ navigation }) {
                 placeholderTextColor="#A0A0A0"
                 keyboardType="email-address"
                 autoCapitalize="none"
+                autoComplete="email"
                 value={email}
-                onChangeText={setEmail}
+                onChangeText={(text) => setEmail(text.trim())}
               />
             </View>
 
@@ -128,6 +184,7 @@ export default function LoginScreen({ navigation }) {
                 style={styles.input}
                 placeholder="Enter your password"
                 placeholderTextColor="#A0A0A0"
+                autoComplete="password"
                 value={password}
                 onChangeText={setPassword}
                 secureTextEntry={!showPassword}
@@ -150,12 +207,14 @@ export default function LoginScreen({ navigation }) {
               onPress={handleLogin}
               disabled={loading}
             >
-              <Text style={styles.signInButtonText}>Sign In To Employee Portal</Text>
+              <Text style={styles.signInButtonText}>Sign In</Text>
             </TouchableOpacity>
           </View>
         </View>
-      <Loader visible={loading} />
-    </SafeAreaView>
+
+        <Loader visible={loading} />
+      </SafeAreaView>
+    </TouchableWithoutFeedback>
   );
 }
 
@@ -163,9 +222,7 @@ const styles = StyleSheet.create({
   container: { flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#121212', paddingHorizontal: 20, },
   card: { width: '100%', maxWidth: 400, backgroundColor: '#1C1C1C', borderRadius: 20, borderWidth: 1, borderColor: '#00E0FF', padding: 25, },
   header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 15, },
-  logo: { width: 50, height: 50, resizeMode: 'contain', marginRight: 15, },
   welcomeback: { fontSize: 18, fontFamily: 'Poppins-Bold', textAlign: 'center', color: '#E0E0E0', },
-  signintext: { fontSize: 12, fontFamily: 'Poppins-SemiBold', textAlign: 'center', color: '#E0E0E0', },
   inputGroup: { marginBottom: 20, },
   label: { fontSize: 14, fontFamily: 'Poppins-Medium', color: '#E0E0E0', marginBottom: 8, },
   inputContainer: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#242424', borderBottomWidth: 0.5, borderRadius: 10, borderColor: '#00E0FF', paddingHorizontal: 15, },
