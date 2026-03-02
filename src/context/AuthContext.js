@@ -1,11 +1,10 @@
 // src/context/AuthContext.js
 
-import React, { createContext, useContext, useState, useEffect } from "react";
-import AsyncStorage from '@react-native-async-storage/async-storage'; // Although we use utility functions, good to keep
+import React, { createContext, useContext, useState, useEffect, useCallback } from "react";
 import { Alert, BackHandler } from 'react-native';
 import Toast from 'react-native-toast-message'; 
 import { setTokenExpiredCallback } from "../api/apiClient"; 
-import { getToken, getUserData, clearLoginData, saveLoginData } from "../utils/storage"; // Your storage utilities
+import { getToken, getUserData, clearLoginData, saveLoginData } from "../utils/storage";
 
 export const AuthContext = createContext();
 
@@ -24,20 +23,19 @@ export const useAuth = () => {
 };
 
 export const AuthProvider = ({children}) => {
-    // --- 1. State Management (The Missing Pieces) ---
+
     const [authState, setAuthState] = useState(AUTH_STATES.LOADING);
     const [isAuthenticated, setIsAuthenticated] = useState(false);
     const [token, setToken] = useState(null);
     const [userData, setUserData] = useState(null);
 
-    // --- 2. Session Initialization (Runs on App Startup) ---
+    //  Session Initialization 
     const initializeAuth = async () => {
         try {
             const storedToken = await getToken();
             const storedUserData = await getUserData();
 
             if (storedToken && storedUserData) {
-                // Assuming the token is still valid (server will confirm on first API call)
                 setToken(storedToken);
                 setUserData(storedUserData);
                 setIsAuthenticated(true);
@@ -52,31 +50,25 @@ export const AuthProvider = ({children}) => {
         }
     };
     
-    // --- 3. Login Action ---
+    //  Login Action 
     const login = async (token, userData) => { 
-    try {
-        
-        await saveLoginData(token, userData); // Use your utility function
+        try {
+            await saveLoginData(token, userData);
+            setToken(token);
+            setUserData(userData);
+            setIsAuthenticated(true);
+            setAuthState(AUTH_STATES.AUTHENTICATED);
+            return true;
+        } catch (error) {
+            console.error("Login failed in AuthContext:", error);
+            return false;
+        }
+    };
 
-        setToken(token);
-        setUserData(userData); // Use userData instead of 'user'
-        setIsAuthenticated(true);
-        setAuthState(AUTH_STATES.AUTHENTICATED);
-        
-        Toast.show({ type: 'success', text1: 'Login Successful', position: 'bottom' });
-        return true;
-    } catch (error) {
-        console.error("Login failed in AuthContext:", error);
-        return false;
-    }
-};
-
-    // --- 4. Session Expired/Logout Handler (The Core Logic) ---
-    const handleSessionExpired = async (showAlert = true) => {
-        // Use your utility function to clear storage
+    //  Session Expired Handler 
+    const handleSessionExpired = useCallback(async (showAlert = true) => {
         await clearLoginData(); 
 
-        // Reset Context State
         setToken(null);
         setUserData(null);
         setIsAuthenticated(false);
@@ -95,26 +87,27 @@ export const AuthProvider = ({children}) => {
                 { cancelable: false }
             );
         } else {
-             Toast.show({ type: 'success', text1: 'Logged out successfully!', text2: 'Your session is now closed.', position: 'bottom' });
+            //  custom toast
+            Toast.show({ 
+                type: 'customSuccessToast', 
+                text1: 'Logged out successfully!', 
+                text2: 'Your session is now closed.', 
+                position: 'bottom' 
+            });
         }
-    };
-
-    // --- 5. Logout Action (Manual User Logout) ---
-    const logout = async () => {
-        await handleSessionExpired(false); // Do not show the "expired" alert for a manual logout
-    };
-
-
-    // --- 6. Effects (Linking to Axios and Startup) ---
-    useEffect(() => {
-        // Link to Axios 401 Interceptor
-        setTokenExpiredCallback(handleSessionExpired); 
-        
-        // Check for existing session on mount
-        initializeAuth();
-        
-        return () => setTokenExpiredCallback(null);
     }, []);
+
+    //  Logout Action 
+    const logout = async () => {
+        await handleSessionExpired(false);
+    };
+
+    //  Effects 
+    useEffect(() => {
+        setTokenExpiredCallback(handleSessionExpired); 
+        initializeAuth();
+        return () => setTokenExpiredCallback(null);
+    }, [handleSessionExpired]); // handleSessionExpired now safely in deps array
 
     const contextValue = {
         isAuthenticated,
@@ -123,7 +116,6 @@ export const AuthProvider = ({children}) => {
         authState,
         login,
         logout,
-        // Add other properties you might need
     };
 
     return (
