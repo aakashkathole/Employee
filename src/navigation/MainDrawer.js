@@ -1,9 +1,8 @@
 import React from 'react';
-import { View, Text, Image, StyleSheet, TouchableOpacity } from 'react-native';
+import { View, Text, Image, StyleSheet, TouchableOpacity, Alert } from 'react-native';
 import { createDrawerNavigator, DrawerContentScrollView, DrawerItemList } from '@react-navigation/drawer';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import { useAuth } from '../context/AuthContext';
-import { Alert } from 'react-native';
 
 // screens
 import BottomTabNavigator from './BottomTabNavigator';
@@ -20,6 +19,7 @@ function CustomDrawerContent(props) {
   const { logout, userData } = useAuth();
   const userName = userData?.fullName || 'Employee';
   const userRole = userData?.role || 'User';
+  const userID = userData?.id || 'id';
 
   const handleLogout = () => {
     Alert.alert('Sign Out', 'Are you sure you want to sign out?', [
@@ -42,8 +42,13 @@ function CustomDrawerContent(props) {
           />
           <View style={styles.userInfo}>
             <Text style={styles.userName}>{userName}</Text>
-            <View style={styles.rolePill}>
-              <Text style={styles.userRole}>{userRole}</Text>
+            <View style={{flexDirection: 'row', gap: 8}}>
+              <View style={styles.rolePill}>
+                <Text style={styles.userRole}>{userRole}</Text>
+              </View>
+              <View style={styles.rolePill}>
+                <Text style={styles.userRole}>ID : {userID}</Text>
+              </View>
             </View>
           </View>
       </View>
