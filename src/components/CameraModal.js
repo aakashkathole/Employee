@@ -84,8 +84,7 @@ const CameraModal = ({ visible, actionType, onSuccess, onClose }) => {
       }
       console.log('Parsed API Response:', parsedResponse);
       if (parsedResponse.success || parsedResponse.status === 'success') {
-        Alert.alert('Success', `${actionType} completed successfully`);
-        onSuccess();
+        Alert.alert('Success', `${actionType} completed successfully`, [{ text: 'OK', onPress: () => onSuccess() }]);
       } else {
         throw new Error(parsedResponse.message || parsedResponse.error || 'Unknown error');
       }
@@ -99,7 +98,7 @@ const CameraModal = ({ visible, actionType, onSuccess, onClose }) => {
       } else if (typeof err === 'string') {
         errorMessage = err;
       }
-      Alert.alert('Error', errorMessage);
+      Alert.alert('Error', errorMessage, [{ text: 'OK', onPress: () => onSuccess() }]);
       setError(errorMessage);
     } finally {
       setIsSubmitting(false);
