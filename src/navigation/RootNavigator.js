@@ -12,11 +12,11 @@ const { width, height } = Dimensions.get('window');
 
 const LoadingScreen = () => (
   <View style={styles.loadingContainer}>
-    <Image
+    {/* <Image
       source={require('../../assets/images/logo-DlE65z4X.jpg')}
       style={styles.loadingLogo}
       resizeMode="contain"
-    />
+    /> */}
     <ActivityIndicator
       size="large"
       color="#00E0FF"
