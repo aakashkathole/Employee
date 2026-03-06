@@ -36,10 +36,10 @@ function CustomDrawerContent(props) {
     >
       {/* Header */}
       <View style={styles.header}>
-          <Image
+          {/* <Image
             source={require('../../assets/images/logo-DlE65z4X.jpg')}
             style={styles.logo}
-          />
+          /> */}
           <View style={styles.userInfo}>
             <Text style={styles.userName}>{userName}</Text>
             <View style={{flexDirection: 'row', gap: 8}}>
@@ -47,7 +47,7 @@ function CustomDrawerContent(props) {
                 <Text style={styles.userRole}>{userRole}</Text>
               </View>
               <View style={styles.rolePill}>
-                <Text style={styles.userRole}>ID : {userID}</Text>
+                <Text style={styles.userRole}>Employee ID : {userID}</Text>
               </View>
             </View>
           </View>
