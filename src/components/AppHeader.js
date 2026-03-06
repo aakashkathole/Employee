@@ -9,21 +9,21 @@ const AppHeader = ({ onMenuPress, onNotificationPress }) => {
       <View style={styles.container}>
         
         <TouchableOpacity onPress={onMenuPress} style={styles.iconButton}>
-          <MaterialCommunityIcons name="menu" size={26} color="#000000" />
+          <MaterialCommunityIcons name="menu" size={22} color="#000000" />
         </TouchableOpacity>
 
         
-        <View style={styles.centerContainer}>
+        {/* <View style={styles.centerContainer}>
           <Image
             source={require('../../assets/images/logo-DlE65z4X.jpg')}
             style={styles.logo}
             resizeMode="contain"
           />
-        </View>
+        </View> */}
 
         
         <TouchableOpacity onPress={onNotificationPress} style={styles.iconButton}>
-          <MaterialCommunityIcons name="bell-outline" size={26} color="#000000" />
+          <MaterialCommunityIcons name="bell-outline" size={22} color="#000000" />
         </TouchableOpacity>
 
       </View>
@@ -33,15 +33,17 @@ const AppHeader = ({ onMenuPress, onNotificationPress }) => {
 
 const styles = StyleSheet.create({
   container: {
-    height: 60,
     backgroundColor: '#FFFFFF',
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingHorizontal: 15,
+    borderBottomWidth: 1,
+    borderBottomColor: '#E8ECF0',
+    paddingVertical: 10,
   },
   iconButton: {
-    padding: 5,
+    padding: 4,
   },
   centerContainer: {
     flex: 1,

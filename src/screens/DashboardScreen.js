@@ -230,8 +230,8 @@ export default function DashboardScreen({ navigation }) {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#F5F7FA' },
-  scrollView: { backgroundColor: '#ffffff' },
+  container: { flex: 1, backgroundColor: '#fff' },
+  scrollView: { backgroundColor: '#fff' },
   centerContainer: { flex: 1, justifyContent: 'center', alignItems: 'center' },
   loadingText: { fontFamily: 'Poppins-Regular', marginTop: 8 },
   errorContainer: { flex: 1, justifyContent: 'center', alignItems: 'center', padding: 20 },

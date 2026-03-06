@@ -168,15 +168,16 @@ export default function AttendanceScreen() {
         <SafeAreaView style={styles.container}>
             <StatusBar backgroundColor="#fff" barStyle="dark-content" />
             
-            <View style={styles.headerContainer}>
-                <TouchableOpacity
-                 onPress={() => navigation.goBack()}
-                 style={styles.backBtn}
-                 activeOpacity={0.7}
-                 >
+            {/* Header Section */}
+            <View style={styles.header}>
+                <TouchableOpacity 
+                    onPress={() => navigation.goBack()}
+                    style={styles.backBtn}
+                    activeOpacity={0.7}
+                >
                     <MaterialCommunityIcons name="chevron-left" size={22} color="#ffffff" />
                 </TouchableOpacity>
-                <Text style={styles.header}>Attendance</Text>
+                <Text style={styles.headerTitle}>Attendance</Text>
             </View>
             
             {/* Time Frame Filters */}
@@ -316,13 +317,12 @@ export default function AttendanceScreen() {
 
 const styles = StyleSheet.create({
     container: { flex: 1, backgroundColor: '#fff' },
-    headerContainer: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 15, paddingVertical: 10, },
-    backButton: { marginRight: 10, padding: 8, borderRadius: 8, },
-    backButtonText: { fontSize: 14, color: '#007bff', fontFamily: 'Poppins-SemiBold', },
-    header: { fontSize: 20, fontFamily: 'Poppins-SemiBold', color: '#333', flex: 1, },
-    backBtn: { borderWidth: 0.3, marginRight: 12, padding: 4, backgroundColor: "#2563eb", borderRadius: 8, },
+    // Header
+    header: { flexDirection:'row', paddingHorizontal: 20, paddingTop: 10, paddingBottom: 10, backgroundColor: '#fff', borderBottomWidth: 1, borderBottomColor: '#E8ECF0', gap: 8 },
+    backBtn: { borderWidth: 0.3, marginRight: 4, padding: 4, backgroundColor: "#2563eb", borderRadius: 8, },
+    headerTitle: { fontSize: 17, fontFamily: 'Poppins-SemiBold', color: "#1A1A1A", },
     // Filters
-    filtersContainer: { maxHeight: 36, marginBottom: 15, },
+    filtersContainer: { maxHeight: 36, marginBottom: 10, marginTop: 10 },
     filtersContentContainer: { paddingHorizontal: 8, alignItems: 'center', },
     filterButton: { paddingVertical: 4, paddingHorizontal: 12, borderRadius: 16, marginRight: 6, backgroundColor: '#f5f5f5', justifyContent: 'center', borderWidth: 1, borderColor: '#929292', minHeight: 28, },
     filterText: { color: '#666', fontSize: 12, fontFamily: 'Poppins-Regular', },
